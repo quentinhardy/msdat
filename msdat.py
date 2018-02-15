@@ -6,7 +6,7 @@ from sys import exit,stdout
 from Constants import *
 
 from Output import Output
-from Utils import cleanString, ErrorClass, databaseHasBeenGiven
+from Utils import cleanString, ErrorClass, databaseHasBeenGiven,ipOrNameServerHasBeenGiven
 from Mssql import Mssql
 from PasswordGuesser import PasswordGuesser, runPasswordGuesserModule, getHostsFromFile
 from Passwordstealer import Passwordstealer, runPasswordStealerModule
@@ -77,6 +77,8 @@ def runAllModules(args):
 	Run all modules
 	'''
 	connectionInformation, validDatabaseList = {}, []
+	status = ipOrNameServerHasBeenGiven(args)
+	if status == False: return EXIT_MISS_ARGUMENT
 	#A)REMOTE VERSION
 	###########mssqlInfo = MssqlInfo(args)
 	###########mssqlInfo.testAll()

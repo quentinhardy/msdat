@@ -58,7 +58,6 @@ class Passwordstealer (Mssql):
 					line = "{0}:empty ({0} password is empty, not 'empty' -:)".format(anAccount['name'],None)
 				else:
 					line = "{0}:0x{1}".format(anAccount['name'],anAccount['password'].encode('hex'))
-				print line
 				if self.args['save-to-file'] != None: f.write(line+'\n')
 				if anAccount['name'].endswith('##') and anAccount['name'].startswith('##'):
 					certificateBasedSQLServerLogins.append(anAccount['name'])

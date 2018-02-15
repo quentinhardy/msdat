@@ -21,7 +21,6 @@ class PasswordGuesser:
 		self.accountsFile = accountsFile
 		self.usernamesFile = usernamesFile
 		self.passwordsFile = passwordsFile
-		print self.usernamesFile, self.passwordsFile
 		if self.accountsFile == '' or self.accountsFile == None :  self.accounts = []
 		elif self.usernamesFile != None and self.passwordsFile != None:
 			self.accounts = []
@@ -80,7 +79,6 @@ class PasswordGuesser:
 				else : logging.warning("The account '{0}' not contains '{1}' or it contains more than one '{1}'. This account will not be tested".format(lsplit[0],self.credSeparator))
 		f.close()
 		logging.debug("Accounts loaded")
-		print sorted(accounts, key=lambda x: x[0])
 		return sorted(accounts, key=lambda x: x[0])
 
 	def searchValideAccounts(self):

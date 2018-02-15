@@ -33,34 +33,34 @@ Thanks to MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool), you
 * __search MSSQL accounts__ with a dictionnary attack
 * __test each login as password__ (authentication required)
 * __get a windows shell__ on the database server with
- * xp_cmdshell
+  * xp_cmdshell
 * __download__ files remotely with:
- * OLE Automation
- * bulkinsert
- * openrowset
+  * OLE Automation
+  * bulkinsert
+  * openrowset
 * __upload__ files on the server with:
- * OLE Automation
- * openrowset
+  * OLE Automation
+  * openrowset
 * __capture a SMB authentication__ thanks to:
- * bulkinsert 
- * openrowset 
- * *xp_dirtree* 
- * *xp_fileexist* 
- * *xp-getfiledetails*
+  * bulkinsert 
+  * openrowset 
+  * *xp_dirtree* 
+  * *xp_fileexist* 
+  * *xp-getfiledetails*
 * __steal MSSQL hashed password__, on an any MSSQL version  
 * __scan ports__ through the database:
- * openrowset
+  * openrowset
 * __execute SQL requests on a remote MSSQL server__ trough the database (target) with:
- * *bulkinsert*
- * *openrowset*
+  * *bulkinsert*
+  * *openrowset*
 * __list files/directories__ with:
- * *xp_subdirs*
- * *xp_dirtree*
+  * *xp_subdirs*
+  * *xp_dirtree*
 * __list drives/medias__ with:
- * *xp_fixeddrives*
- * *xp_availablemedia*
+  * *xp_fixeddrives*
+  * *xp_availablemedia*
 * __create folder__ with:
- * *xp_create_subdir*
+  * *xp_create_subdir*
  
 Installation
 ====
@@ -68,11 +68,14 @@ Installation
 Some dependancies must be installed in order to run MSDAT.
 
 In ubuntu:
-
-* sudo apt-get install freetds-dev or download freetds on [http://www.freetds.org/](http://www.freetds.org/)
-* sudo pip install cython colorlog termcolor pymssql argparse
-* sudo pip install argcomplete && sudo activate-global-python-argcomplete
-
+```bash
+sudo apt-get install freetds-dev 
+```
+or download freetds on [http://www.freetds.org/](http://www.freetds.org/)
+```bash
+sudo pip install cython colorlog termcolor pymssql argparse
+sudo pip install argcomplete && sudo activate-global-python-argcomplete
+```
 Add "use ntlmv2 = yes" in your freetds configuration file (ex: /etc/freetds/freetds.conf or /usr/local/etc/freetds.conf).
 Example:
 ```bash

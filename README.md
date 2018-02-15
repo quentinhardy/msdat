@@ -1,7 +1,7 @@
 MSDAT
 ====
 
-MSDAT (__M__icro__s__oft SQL __D__atabase __A__ttacking __T__ool) is an open source penetration testing tool that tests the security of Microsoft SQL Databases remotely.
+MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool) is an open source penetration testing tool that tests the security of Microsoft SQL Databases remotely.
 
 Usage examples of MSDAT:
 
@@ -21,7 +21,7 @@ Changelog
 Features
 ====
 
-Thanks to MSDAT (__M__icro__s__oft SQL __D__atabase __A__ttacking __T__ool), you can:
+Thanks to MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool), you can:
 
 * __get technical information__ (ex: database version) of a MSSQL database without to be authenticated
 * __search MSSQL accounts__ with a dictionnary attack

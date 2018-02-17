@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import logging
 from Mssql import Mssql
 from Utils import cleanString, ErrorClass,checkOptionsGivenByTheUser
@@ -63,7 +64,7 @@ class Passwordstealer (Mssql):
 					certificateBasedSQLServerLogins.append(anAccount['name'])
 		if self.args['save-to-file'] != None: f.close()
 		if certificateBasedSQLServerLogins != []:
-			print '\nThese following logins are certificate-based SQL server logins (for internal system use only): {0}'.format(", ".join(certificateBasedSQLServerLogins))
+			print('\nThese following logins are certificate-based SQL server logins (for internal system use only): {0}'.format(", ".join(certificateBasedSQLServerLogins)))
 		if self.args['save-to-file'] != None: logging.info("Hashed passwords saved in the file {0}".format(self.args['save-to-file']))
 		
 	def testAll (self):

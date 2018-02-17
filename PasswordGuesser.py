@@ -121,7 +121,7 @@ class PasswordGuesser:
 		Save this login in the trace file to known if this login has already been tested
 		If the login is in the file , return False. Otherwise return True
 		'''
-		if self.args.has_key('loginTraceFile') == False:
+		if ('loginTraceFile' in self.args) == False:
 			self.args['loginTraceFile'] = "{4}/{0}-{1}-{2}{3}".format(self.args['host'],self.args['port'],self.args['database'],PASSWORD_EXTENSION_FILE, PASSWORD_FOLDER)
 			if os.path.isfile(self.args['loginTraceFile']) == False:
 				if os.path.isdir(PASSWORD_FOLDER) == False:

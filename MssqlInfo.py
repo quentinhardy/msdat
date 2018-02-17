@@ -71,7 +71,7 @@ class MssqlInfo:
 		logging.info("The mssql-info script is sending a TCP packet to the database server to get the remote database version (without authentication)")
 		logging.debug("writing {0} bytes ".format(len(toSend)))
 		try : s.connect((self.host, self.port))
-		except Exception,e:
+		except Exception as e:
 			logging.critical("Impossible to establish a TCP connection to {0}:{1}".format(self.host,self.port))
 			return {'productName':productName, 'version:':productVersionString, 'versionNumber':productVersion}
 		s.sendall(toSend)
@@ -199,7 +199,7 @@ def runMssqlInfoModule(args):
 		mssqlInfo = MssqlInfo(args)
 		productName = mssqlInfo.__getRemoteVersionThroughTDSResponse__()
 		args['print'].title("Try to get the remote database version thanks to the TDS protocol:")
-		if productName.has_key('Version') == True and productName.has_key('ProductName') == True:
+		if ('Version' in productName) == True and ('ProductName' in productName) == True:
 			args['print'].goodNews("The SQL server version of {0}:{1}: {2} i.e. {3}".format(args['host'],args['port'], productName['Version'],productName['ProductName']))
 		else :
 			args['print'].badNews("Impossible to get the remote database version thanks to the TDS protocol")

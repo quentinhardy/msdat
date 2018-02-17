@@ -101,13 +101,13 @@ def runAllModules(args):
 			else :
 				args['print'].goodNews("Accounts found on {0}:{1}/{2}: {3}. All modules will be started with this (these) account(s)".format(args['host'], args['port'], args['database'],validAccountsList))
 				for aLogin, aPassword in validAccountsList.items(): 
-					if connectionInformation.has_key(database) == False: connectionInformation[database] = [[aLogin,aPassword]]
+					if (database in connectionInformation) == False: connectionInformation[database] = [[aLogin,aPassword]]
 					else : connectionInformation[database].append([aLogin,aPassword])
 	else :
 		validAccountsList = {args['user']:args['password']}
 		for database in validDatabaseList:
 			for aLogin, aPassword in validAccountsList.items():
-				if connectionInformation.has_key(database) == False: connectionInformation[database] = [[aLogin,aPassword]]
+				if (database in connectionInformation) == False: connectionInformation[database] = [[aLogin,aPassword]]
 				else : connectionInformation[database].append([aLogin,aPassword])
 	#C)ALL OTHERS MODULES
 	for aDatabase in connectionInformation.keys():

@@ -3,17 +3,17 @@
 #
 # progressbar  - Text progressbar library for python.
 # Copyright (c) 2005 Nilton Volpato
-# 
+#
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This library is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -54,7 +54,8 @@ __version__ = "2.2"
 # 2004-??-??: v0.1 first version
 
 
-import sys, time
+import sys
+import time
 from array import array
 try:
     from fcntl import ioctl
@@ -62,6 +63,12 @@ try:
 except ImportError:
     pass
 import signal
+
+try:
+    unicode        # Python 2
+except NameError:
+    unicode = str  # Python 3
+
 
 class ProgressBarWidget(object):
     """This is an element of ProgressBar formatting.
@@ -301,4 +308,3 @@ class ProgressBar(object):
         self.update(self.maxval)
         if self.signal_set:
             signal.signal(signal.SIGWINCH, signal.SIG_DFL)
-

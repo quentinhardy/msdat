@@ -1,5 +1,12 @@
-import logging, os
+import logging
+import os
 from Constants import PASSWORD_EXTENSION_FILE
+
+try:
+    raw_input          # Python 2
+except NameError:
+    raw_input = input  # Python 3
+
 
 def runCleaner (args):
 	'''
@@ -13,9 +20,9 @@ def runCleaner (args):
 		for currentFile in files:
 			logging.debug("Processing file: {0}".format(currentFile))
 			for ext in exts:
-				if currentFile.lower().endswith(ext) : 
+				if currentFile.lower().endswith(ext) :
 					rep = raw_input("Do you want to delete this file (Y for yes): {0}/{1}? ".format(root, currentFile))
-					if rep.replace('\n','') == 'Y' : 
+					if rep.replace('\n','') == 'Y' :
 						os.remove(os.path.join(root, currentFile))
 						logging.info("Removing {0}/{1}".format(root, currentFile))
 						nbFileDeleted += 1

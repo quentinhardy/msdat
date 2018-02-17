@@ -55,7 +55,7 @@ class ScanPorts ():
 				if self.portsQueue.empty(): thread.exit()
 				try :
 					port = self.portsQueue.get(block=False)
-				except Exception, e:
+				except Exception as e:
 					thread.exit()
 				logging.debug("Scanning {0}:{1} ... (response in max 60 secs)".format(self.ip, port))
 				response = ""

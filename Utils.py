@@ -45,7 +45,7 @@ def databaseHasBeenGiven(args):
 	Otherwise return False
 	- args must be a dictionnary
 	'''
-	if args.has_key('database') == False or args['database'] == None:
+	if ('database' in args) == False or args['database'] == None:
 		logging.critical("The database must be given thanks to the '-d DATABASE' option.")
 		return False
 	return True
@@ -56,17 +56,17 @@ def ipOrNameServerHasBeenGiven(args):
 	Otherwise return False
 	- args must be a dictionnary
 	'''
-	if args.has_key('host') == False or args['host'] == None:
+	if ('host' in args) == False or args['host'] == None:
 		logging.critical("The server addess must be given thanks to the '-s IPadress' option.")
 		return False
 	else :
 		try:
 			inet_aton(args['host'])
-		except Exception,e:
+		except Exception as e:
 			try:
 				ip = gethostbyname(args['host'])
 				args['host'] = ip
-			except Exception,e:
+			except Exception as e:
 				logging.critical("There is an error with the name server or ip address: '{0}'".format(e))
 				return False
 	return True
@@ -97,9 +97,9 @@ def anOperationHasBeenChosen(args, operations):
 	- oeprations must be a list
 	- args must be a dictionnary
 	'''
-	if args.has_key('test-module')==True and args['test-module'] == True : return True
+	if ('test-module' in args)==True and args['test-module'] == True : return True
 	for key in operations:
-		if args.has_key(key) == True:
+		if (key in args) == True:
 			if args[key] != None and args[key] != False : return True
 	logging.critical("An operation on this module must be chosen thanks to one of these options: --{0};".format(', --'.join(operations)))
 	return False

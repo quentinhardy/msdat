@@ -66,6 +66,8 @@ Result:
     ijkl   0.000    5.000e-78   89    0.000
     mnop   0.023    5.000e+78   92    1.280e+22
 """
+from __future__ import print_function
+from functools import reduce
 
 __all__ = ["Texttable", "ArraySizeError"]
 
@@ -179,7 +181,7 @@ class Texttable:
         """
 
         if len(array) != 4:
-            raise ArraySizeError, "array should contain 4 characters"
+            raise ArraySizeError("array should contain 4 characters")
         array = [ x[:1] for x in [ str(s) for s in array ] ]
         (self._char_horiz, self._char_vert,
             self._char_corner, self._char_header) = array
@@ -313,7 +315,7 @@ class Texttable:
         #     usable code for python 2.1
         if header:
             if hasattr(rows, '__iter__') and hasattr(rows, 'next'):
-                self.header(rows.next())
+                self.header(next(rows))
             else:
                 self.header(rows[0])
                 rows = rows[1:]
@@ -388,8 +390,8 @@ class Texttable:
         if not self._row_size:
             self._row_size = len(array)
         elif self._row_size != len(array):
-            raise ArraySizeError, "array should contain %d elements" \
-                % self._row_size
+            raise ArraySizeError("array should contain %d elements" \
+                % self._row_size)
 
     def _has_vlines(self):
         """Return a boolean, if vlines are required or not
@@ -547,7 +549,7 @@ class Texttable:
             for c in cell.split('\n'):
                 try:
                     c = unicode(c, 'utf')
-                except UnicodeDecodeError, strerror:
+                except UnicodeDecodeError as strerror:
                     sys.stderr.write("UnicodeDecodeError exception for string '%s': %s\n" % (c, strerror))
                     c = unicode(c, 'utf', 'replace')
                 array.extend(textwrap.wrap(c, width))
@@ -573,7 +575,7 @@ if __name__ == '__main__':
     table.add_rows([ ["Name", "Age", "Nickname"], 
                      ["Mr\nXavier\nHuon", 32, "Xav'"],
                      ["Mr\nBaptiste\nClement", 1, "Baby"] ])
-    print table.draw() + "\n"
+    print(table.draw() + "\n")
 
     table = Texttable()
     table.set_deco(Texttable.HEADER)
@@ -588,4 +590,4 @@ if __name__ == '__main__':
                     ["efghijk", 67.5434, .654,  89.6,  12800000000000000000000.00023],
                     ["lmn",     5e-78,   5e-78, 89.4,  .000000000000128],
                     ["opqrstu", .023,    5e+78, 92.,   12800000000000000000000]])
-    print table.draw()
+    print(table.draw())

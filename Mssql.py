@@ -7,8 +7,6 @@ import pymssql, _mssql, decimal
 from Constants import *
 from progressbar import *
 
-import pyodbc
-
 class Mssql ():
 	'''
 	MS SQL class 

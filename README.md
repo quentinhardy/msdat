@@ -321,7 +321,11 @@ To search a specific pattern in column names of views and tables:
 ./msdat.py search -s $SERVER -p $PORT -U $USER -P $PASSWORD -d $DATABASE --pwd-column-names --show-empty-columns
 ```
 
+Donation
+====
+If you want to support my work doing a donation, I will appreciate a lot:
 
+* Via BTC: 36FugL6SnFrFfbVXRPcJATK9GsXEY6mJbf
 
 
 

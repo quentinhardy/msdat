@@ -73,13 +73,13 @@ class UsernameLikePassword (Mssql):
 		'''
 		logging.info('Get all usernames from the SUSER_NAME method')
 		usernames = self.getUsernamesViaSuserName()
-		if isinstance(usernames,Exception) :
-			logging.info('Impossible to get usernames with SUSER_NAME method: {1}'.format(query,str(usernames)))
+		if isinstance(usernames,Exception) or usernames==None:
+			QUERY = "SELECT name FROM master..syslogins"
+			logging.info('Impossible to get usernames with SUSER_NAME method: {1}'.format(QUERY,str(usernames)))
 			logging.info('Get all usernames from the syslogins table...')
-			query = "SELECT name FROM master..syslogins"
-			response = self.__execQuery__(query=query,ld=['username'])
+			response = self.executeRequest(request=QUERY,ld=['username'])
 			if isinstance(response,Exception) :
-				logging.info('Error with the SQL request {0}: {1}'.format(query,str(response)))
+				logging.info('Error with the SQL request {0}: {1}'.format(QUERY,str(response)))
 				return response
 			else :
 				if response == []: self.allUsernames = []

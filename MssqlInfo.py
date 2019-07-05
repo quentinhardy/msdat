@@ -12,10 +12,20 @@ class MssqlInfo:
 	'''
 	
 	VERSIONS = {#SOURCE: http://sqlserverbuilds.blogspot.fr/
-		"SQL Server 2014": ['12.0.2'],
+		"SQL Server 2019": ['15.0.1'],
+		"SQL Server 2017": ['14.0.1'],
+		"SQL Server 2016 (no SP)": ['13.0.1'],
+		"SQL Server 2016 SP1": ['13.0.4','13.1.4'],
+		"SQL Server 2016 SP2": ['13.0.5', '13.2.5'],
+		"SQL Server 2014 (no SP)": ['12.0.2'],
+		"SQL Server 2014 SP1": ['12.0.4', '12.1.4'],
+		"SQL Server 2014 SP2": ['12.0.5', '12.2.5'],
+		"SQL Server 2014 SP2": ['12.0.6', '12.3.6'],
 		"SQL Server 2012 (no SP)": ['11.0.2'],
 		"SQL Server 2012 SP1": ["11.0.3","11.1.3"],
 		"SQL Server 2012 SP2": ["11.0.5","11.2.5"],
+		"SQL Server 2012 SP3": ["11.0.6", "11.3.6"],
+		"SQL Server 2012 SP4": ["11.0.7", "11.4.7"],
 		"SQL Server 2008 R2 (no SP)": ['10.50.1'],
 		"SQL Server 2008 R2 SP1": ['10.50.2','10.51.2'],
 		"SQL Server 2008 R2 SP2": ['10.50.4','10.52.4'],

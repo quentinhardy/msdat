@@ -1,3 +1,9 @@
 sa/sa
 sa/
 sa/password
+sa/PASSWORD
+/sa
+sa/admin
+sa/changeonfirstlogin
+sa/sasasa
+sa/Ektron

@@ -15,7 +15,7 @@ Usage examples of MSDAT:
 * You have a valid Microsoft SQL account on a database and you want to __escalate your privileges__
 * You have a valid Microsoft SQL account and you want to __execute commands on the operating system__ hosting this DB (xp_cmdshell)
 
-Tested on Microsof SQL database 2005, 2008 and 2012.
+Tested on Microsof SQL database 2005, 2008, 2012, 2014 and 2016.
 
 Changelog
 ====

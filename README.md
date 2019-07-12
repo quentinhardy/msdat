@@ -21,9 +21,10 @@ Changelog
 ====
 
 * Version __1.0__ (2017/02/15) :
- * first version realeased
-
-
+  * first version realeased
+* Version __1.1__ (2019/07/12) :
+  * many other default credentials. Thanks to https://github.com/govolution/betterdefaultpasslist/
+  
 Features
 ====
 

@@ -129,6 +129,17 @@ def getDataFromFile(filename):
 	f.close()
 	logging.debug("Data has been loaded from {0}".format(filename))
 	return data[:-1]
+
+def getBinaryDataFromFile(filename):
+	'''
+	Return data stored in a filename
+	'''
+	logging.info ("Loading data stored in the file {0}".format(filename))
+	f = open(filename,'rb')
+	data = f.read()
+	f.close()
+	logging.debug("Data has been loaded from {0}".format(filename))
+	return data
 	
 def putDataToFile(data, filename):
 	'''

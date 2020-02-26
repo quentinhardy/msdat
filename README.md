@@ -20,10 +20,14 @@ Tested on Microsof SQL database 2005, 2008, 2012, 2014 and 2016.
 Changelog
 ====
 
-* Version __1.0__ (2017/02/15) :
-  * first version realeased
+* Version __1.2__ (2020/02/26) :
+  * New method in xpCmdShell module: Upload a binary file with powershell (--put-file)
+  * Improvement in oleAutomation: upload the file in binary mode instead of text file
 * Version __1.1__ (2019/07/12) :
   * many other default credentials. Thanks to https://github.com/govolution/betterdefaultpasslist/
+* Version __1.0__ (2017/02/15) :
+  * first version realeased
+
   
 Features
 ====

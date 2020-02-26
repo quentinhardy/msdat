@@ -199,6 +199,7 @@ def main():
 	PPxpcmdshell.add_argument('--shell',dest='shell',required=False, action='store_true',default=False,help='get a shell')
 	PPxpcmdshell.add_argument('--enable-xpcmdshell',dest='enable-xpcmdshell',required=False, action='store_true',help='enable xpcmdshell')
 	PPxpcmdshell.add_argument('--disable-xpcmdshell',dest='disable-xpcmdshell',required=False, action='store_true',help='disable xpcmdshell')
+	PPxpcmdshell.add_argument('--put-file',dest='put-file',default=None,required=False,nargs=3,metavar=('localfilename','remotefilename','width'),help='put a file with powershell ("width" recommanded: 5000 max)')
 	PPxpcmdshell.add_argument('--test-module',dest='test-module',required=False, action='store_true',help='check features usable in this module')
 	#1.6- Parent parser: jobs
 	PPjobs = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))

@@ -146,8 +146,8 @@ def putDataToFile(data, filename):
 	Put data to the local file filename
 	'''
 	logging.info ("Writing data to the file {0}".format(filename))
-	f = open(filename,'w')
-	f.write(data)
+	f = open(filename,'wb')
+	f.write(data.encode("UTF-8"))
 	logging.debug("Data has been written in {0}".format(filename))
 	f.close()
 	return True

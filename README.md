@@ -17,16 +17,18 @@ Usage examples of MSDAT:
 
 Tested on Microsof SQL database 2005, 2008, 2012, 2014 and 2016.
 
+Python 3 compatible only since version 2.0.
+
 Changelog
 ====
 * Version __2.0__ (2020/02/26) :
-  * Python 2 to Python 3: MSDAT is compatible with Python 3 only now. Python 2 is not supported.
+  * Python 2 to __Python 3__: MSDAT is compatible with __Python 3 only__ now. __Python 2 is not supported__.
   * Separator option in password guesser module
   * Improvments in error catching in --put-file option of _xpcmdshell_ module
   * Improvments in reverse shell option of _jobs_ mobule
   * OLE automation module - command execution improvments
   * OLE automation module - Powershell reverse shell implemented
-  * new option for printing list of agents jobs and their code: --print-jobs 
+  * new option for printing list of agents jobs and their code: _--print-jobs_
 * Version __1.2__ (2020/02/26) :
   * New method in xpCmdShell module: Upload a binary file with powershell (--put-file)
   * Improvement in oleAutomation: upload the file in binary mode instead of text file
@@ -87,8 +89,8 @@ or download freetds on [http://www.freetds.org/](http://www.freetds.org/)
 
 Install python dependencies:
 ```bash
-sudo pip install cython colorlog termcolor pymssql argparse
-sudo pip install argcomplete && sudo activate-global-python-argcomplete
+sudo pip3 install cython colorlog termcolor pymssql argparse
+sudo pip3 install argcomplete && sudo activate-global-python-argcomplete
 ```
 Add "use ntlmv2 = yes" in your freetds configuration file (ex: ```/etc/freetds/freetds.conf``` or ```/usr/local/etc/freetds.conf```).
 Example:

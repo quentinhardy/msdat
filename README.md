@@ -21,7 +21,7 @@ Python 3 compatible only since version 2.0.
 
 Changelog
 ====
-* Version __2.0__ (2020/02/26) :
+* Version __2.0__ (2020/03/04) :
   * Python 2 to __Python 3__: MSDAT is compatible with __Python 3 only__ now. __Python 2 is not supported__.
   * Separator option in password guesser module
   * Improvments in error catching in --put-file option of _xpcmdshell_ module

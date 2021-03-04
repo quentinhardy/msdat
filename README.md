@@ -100,6 +100,53 @@ Example:
         tds version = 8.0
         use ntlmv2 = yes
 ```
+How to begin
+====
+
+```bash
+python3 msdat.py -h
+usage: msdat.py [-h] [--version]
+                {all,mssqlinfo,passwordguesser,passwordstealer,xpcmdshell,jobs,smbauthcapture,oleautomation,bulkopen,xpdirectory,trustworthype,userlikepwd,search,cleaner}
+                ...
+
+               _   _  __  __   _  ___ 
+              | \_/ |/ _||  \ / \|_ _|
+              | \_/ |\_ \| o ) o || | 
+              |_| |_||__/|__/|_n_||_| 
+                        
+------------------------------------------------------
+ _   _  __            __           _           ___ 
+| \_/ |/ _|         |  \         / \         |_ _|
+| \_/ |\_ \         | o )         o |         | | 
+|_| |_||__/icrosoft |__/atabase |_n_|ttacking |_|ool 
+                        
+-------------------------------------------------------
+
+By Quentin Hardy (quentin.hardy@protonmail.com or quentin.hardy@bt.com)
+
+positional arguments:
+  {all,mssqlinfo,passwordguesser,passwordstealer,xpcmdshell,jobs,smbauthcapture,oleautomation,bulkopen,xpdirectory,trustworthype,userlikepwd,search,cleaner}
+                        
+                        Choose a main command
+    all                 to run all modules in order to know what it is possible to do
+    mssqlinfo           to get information without authentication
+    passwordguesser     to know valid credentials
+    passwordstealer     to get hashed passowrds
+    xpcmdshell          to get a shell
+    jobs                to execute system commands
+    smbauthcapture      to capture a SMB authentication
+    oleautomation       to read/write file and execute system commands
+    bulkopen            to read a file and scan ports
+    xpdirectory         to list files/drives and to create directories
+    trustworthype       to become sysadmin with the trustwothy database method
+    userlikepwd         to try each MSSQL username stored in the DB like the corresponding pwd
+    search              to search in column names
+    cleaner             clean local traces
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+```
 
 Examples
 ====

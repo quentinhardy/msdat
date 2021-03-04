@@ -14,7 +14,7 @@ def runCleaner (args):
 			logging.debug("Processing file: {0}".format(currentFile))
 			for ext in exts:
 				if currentFile.lower().endswith(ext) : 
-					rep = raw_input("Do you want to delete this file (Y for yes): {0}/{1}? ".format(root, currentFile))
+					rep = input("Do you want to delete this file (Y for yes): {0}/{1}? ".format(root, currentFile))
 					if rep.replace('\n','') == 'Y' : 
 						os.remove(os.path.join(root, currentFile))
 						logging.info("Removing {0}/{1}".format(root, currentFile))

@@ -13,13 +13,20 @@ Usage examples of MSDAT:
 
 * You have a Microsoft database listening remotely and you want to __find valid credentials__ in order to connect to the database
 * You have a valid Microsoft SQL account on a database and you want to __escalate your privileges__
-* You have a valid Microsoft SQL account and you want to __execute commands on the operating system__ hosting this DB (xp_cmdshell)
+* You have a valid Microsoft SQL account and you want to __execute commands on the operating system__ hosting this DB (e.g. xp_cmdshell, OLE Automation, Agent Jobs)
 
 Tested on Microsof SQL database 2005, 2008, 2012, 2014 and 2016.
 
 Changelog
 ====
-
+* Version __2.0__ (2020/02/26) :
+  * Python 2 to Python 3: MSDAT is compatible with Python 3 only now. Python 2 is not supported.
+  * Separator option in password guesser module
+  * Improvments in error catching in --put-file option of _xpcmdshell_ module
+  * Improvments in reverse shell option of _jobs_ mobule
+  * OLE automation module - command execution improvments
+  * OLE automation module - Powershell reverse shell implemented
+  * new option for printing list of agents jobs and their code: --print-jobs 
 * Version __1.2__ (2020/02/26) :
   * New method in xpCmdShell module: Upload a binary file with powershell (--put-file)
   * Improvement in oleAutomation: upload the file in binary mode instead of text file
@@ -32,7 +39,7 @@ Changelog
 Features
 ====
 
-Thanks to MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool), you can:
+Thanks to MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool), you can (no exhaustive list):
 
 * __get technical information__ (ex: database version) of a MSSQL database without to be authenticated
 * __search MSSQL accounts__ with a dictionnary attack
@@ -77,11 +84,13 @@ In ubuntu:
 sudo apt-get install freetds-dev 
 ```
 or download freetds on [http://www.freetds.org/](http://www.freetds.org/)
+
+Install python dependencies:
 ```bash
 sudo pip install cython colorlog termcolor pymssql argparse
 sudo pip install argcomplete && sudo activate-global-python-argcomplete
 ```
-Add "use ntlmv2 = yes" in your freetds configuration file (ex: /etc/freetds/freetds.conf or /usr/local/etc/freetds.conf).
+Add "use ntlmv2 = yes" in your freetds configuration file (ex: ```/etc/freetds/freetds.conf``` or ```/usr/local/etc/freetds.conf```).
 Example:
 ```bash
 [global]

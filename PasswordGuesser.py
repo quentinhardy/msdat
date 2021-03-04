@@ -121,14 +121,14 @@ class PasswordGuesser:
 		Save this login in the trace file to known if this login has already been tested
 		If the login is in the file , return False. Otherwise return True
 		'''
-		if self.args.has_key('loginTraceFile') == False:
+		if ('loginTraceFile' in self.args) == False:
 			self.args['loginTraceFile'] = "{4}/{0}-{1}-{2}{3}".format(self.args['host'],self.args['port'],self.args['database'],PASSWORD_EXTENSION_FILE, PASSWORD_FOLDER)
 			if os.path.isfile(self.args['loginTraceFile']) == False:
 				if os.path.isdir(PASSWORD_FOLDER) == False:
 					os.mkdir(PASSWORD_FOLDER)
 				f=open(self.args['loginTraceFile'],'w')
 				f.close()
-				logging.info("The {0} file has been created".format(self.args['loginTraceFile']))
+				logging.info("The {0} file has been created".format(self.args['loginTraceFile']))
 		f=open(self.args['loginTraceFile'],'r')
 		for l in f:
 			aLoginInFile = l.replace('\n','').replace('\r','').replace('\t','')
@@ -150,7 +150,7 @@ class PasswordGuesser:
 		- 2 : continue without ask (yes) 
 		'''
 		def askToContinue ():
-			rep = raw_input("The login {0} has already been tested at least once. What do you want to do:\n- stop (s/S)\n- continue and ask every time (a/A)\n- continue without to ask (c/C)\n".format(login))
+			rep = input("The login {0} has already been tested at least once. What do you want to do:\n- stop (s/S)\n- continue and ask every time (a/A)\n- continue without to ask (c/C)\n".format(login))
 			if rep == 's' or rep == 'S' : return 0
 			elif rep == 'a' or rep == 'A' : return 1
 			elif rep == 'c' or rep == 'C' : return 2
@@ -185,7 +185,7 @@ def getHostsFromFile(filename):
 def runPasswordGuesserModuleOnAHost(args):
 	'''
 	'''
-	passwordGuesser = PasswordGuesser(args, usernamesFile=args['usernames-file'], passwordsFile=args['passwords-file'], accountsFile=args['accounts-file'], separator='/')
+	passwordGuesser = PasswordGuesser(args, usernamesFile=args['usernames-file'], passwordsFile=args['passwords-file'], accountsFile=args['accounts-file'], separator=args['separator'])
 	passwordGuesser.searchValideAccounts()
 	validAccountsList = passwordGuesser.valideAccounts
 	if validAccountsList == {}:

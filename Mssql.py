@@ -41,8 +41,8 @@ class Mssql ():
 		self.charset = args['charset']
 		self.domain = args['domain']
 		self.args = args
-		if self.args.has_key('connection') == False : self.args['connection'] = None
-		if self.args.has_key('cursor') == False : self.args['cursor'] = None
+		if ('connection' in self.args) == False : self.args['connection'] = None
+		if ('cursor' in self.args) == False : self.args['cursor'] = None
 		self.autocommit = True
 		self.completeVersion = None
 
@@ -62,7 +62,7 @@ class Mssql ():
 		try :
 			self.args['connection'] = pymssql.connect(host=self.host, user=userString, password=self.password, database=self.database, port=self.port, charset=self.charset, login_timeout = DEFAULT_LOGIN_TIMEOUT)
 			self.args['connection'].autocommit(self.autocommit)
-		except Exception, e :
+		except Exception as e :
 			logging.debug("Connection not established : '{0}'".format(repr(e)))
 			if self.ERROR_ACCOUNT_IS_DISABLED in str(e):
 				errorMsg = "The '{0}' account is disabled".format(self.user)
@@ -89,7 +89,7 @@ class Mssql ():
 				self.args['cursor'] = self.args['connection'].cursor()
 				logging.debug("Cursor created")
 				return True
-			except Exception,e:
+			except Exception as e:
 				return ErrorClass(e)
 				
 	def update (self, host, user, password, database='master', port=1433):
@@ -112,7 +112,7 @@ class Mssql ():
 		logging.debug("Closing the connection to the {0} database server...".format(self.host))
 		if self.args['connection'] != None :
 			try: self.args['connection'].close()
-			except Exception, e: return ErrorClass(e)
+			except Exception as e: return ErrorClass(e)
 			else: 	
 				logging.debug("Connection closed")
 				return True
@@ -136,12 +136,12 @@ class Mssql ():
 		if self.args['cursor'] != None:
 			try: 
 				self.args['cursor'].execute(request)
-			except Exception, e: return ErrorClass(e)
+			except Exception as e: return ErrorClass(e)
 			else:
 				if noResult==True : return []
 				try:
 					results = self.args['cursor'].fetchall()
-				except Exception, e: return ErrorClass(e)
+				except Exception as e: return ErrorClass(e)
 				if ld==[] : return results
 				else :
 					values = []

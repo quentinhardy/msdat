@@ -113,11 +113,13 @@ class Xpcmdshell (Mssql):
 		if printCMD==True:
 			logging.info("Executing the '{0}' system command on the {1} server...".format(cmd, self.host))
 		data = self.executeRequest(self.REQ_XPCMDSHELL_CMD.format(cmd),ld=['output'])
-		if isinstance(data,Exception): return data
+		if isinstance(data,Exception):
+			return data
 		else: 
 			output = ""
 			for e in data: 
-				if e['output'] != None: output = output + e['output'].encode(self.ENCODAGE) + '\n'
+				if e['output'] != None:
+					output = output + e['output'] + '\n'
 			logging.debug("Output: '{0}' (perhaps truncated in this debug output)".format(repr(output[:400])))
 			if printResponse == True : self.output.printOSCmdOutput('{0}'.format(output))
 		logging.info("The system command has been executed")
@@ -160,7 +162,7 @@ class Xpcmdshell (Mssql):
 		'''
 		while False == False:
 			try:
-				cmd = raw_input('{0}$ '.format(self.host))
+				cmd = input('{0}$ '.format(self.host))
 				output = self.executeCmd (cmd=cmd, printResponse=True)
 				if isinstance(output,Exception):
 					logging.critical("Error: {0}".format(output))
@@ -191,18 +193,24 @@ class Xpcmdshell (Mssql):
 		rawData = getBinaryDataFromFile(localFilePath)
 		rawDataSplitted = [rawData[i:i + width] for i in range(0, len(rawData), width)]
 		rawDataSplittedSize = len(rawDataSplitted)
-		logging.info("{0} powershell command(s) will be executed on the target for creating the file".format(rawDataSplittedSize))
+		logging.info("{0} powershell command(s) will be executed on the target for creating the file".format(rawDataSplittedSize))
 		for i, aRawData in enumerate(rawDataSplitted):
 			if i == 0:
 				#we create the file with powershell
-				cmd = PS_CMD_WRITE_CREATE.format(remoteFilePath, base64.b64encode(aRawData)).replace('\t','').replace('\n','')
+				cmd = PS_CMD_WRITE_CREATE.format(remoteFilePath, base64.b64encode(aRawData).decode('utf-8')).replace('\t','').replace('\n','')
 				status = self.executeCmd (cmd=cmd, printResponse=False, printCMD=False)
-				if isinstance(status,Exception): return status
+				if isinstance(status,Exception):
+					return status
+				if "Exception calling" in status:
+					return ErrorClass("Error with powershell: {0}".format(status))
 			else:
 				#we append data to file
-				cmd = PS_CMD_WRITE_APPEND.format(remoteFilePath, base64.b64encode(aRawData)).replace('\t','').replace('\n','')
+				cmd = PS_CMD_WRITE_APPEND.format(remoteFilePath, base64.b64encode(aRawData).decode('utf-8')).replace('\t','').replace('\n','')
 				status = self.executeCmd (cmd=cmd, printResponse=False, printCMD=False)
-				if isinstance(status,Exception): return status
+				if isinstance(status,Exception):
+					return status
+				if "Exception calling" in status:
+					return ErrorClass("Error with powershell: {0}".format(status))
 			logging.info("{0}/{1} done".format(i+1,rawDataSplittedSize))
 		logging.info("Upload finished")
 		return True

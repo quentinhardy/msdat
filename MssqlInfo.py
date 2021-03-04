@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import socket, struct, logging, re
-from itertools import izip_longest
+from itertools import zip_longest
 from Utils import checkOptionsGivenByTheUser
 from Constants import *
 
@@ -76,12 +76,12 @@ class MssqlInfo:
 		0x77, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
 		0x00]
 		productVersionString, productName, productVersion= "", "", []
-		toSend = ''.join([struct.pack('B', val) for val in packet])
+		toSend = b''.join([struct.pack('B', val) for val in packet])
 		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		logging.info("The mssql-info script is sending a TCP packet to the database server to get the remote database version (without authentication)")
 		logging.debug("writing {0} bytes ".format(len(toSend)))
 		try : s.connect((self.host, self.port))
-		except Exception,e:
+		except Exception as e:
 			logging.critical("Impossible to establish a TCP connection to {0}:{1}".format(self.host,self.port))
 			return {'productName':productName, 'version:':productVersionString, 'versionNumber':productVersion}
 		s.sendall(toSend)
@@ -95,7 +95,7 @@ class MssqlInfo:
 					mssqlRawData = data[8:] #type + status + length + Channel + packet# + window 
 					logging.debug("The following packet received should be used to get the remote database server version: '{0}'".format(repr(mssqlRawData)))
 					tds_version=struct.unpack('BBBB', mssqlRawData[0:4])
-					debVersion = mssqlRawData.rfind('ff'.decode('hex'))
+					debVersion = mssqlRawData.rfind(bytes.fromhex('ff'))
 					productVersionBase = list(struct.unpack('BBBBBB',mssqlRawData[debVersion+1:debVersion+7]))
 					productVersion.append(productVersionBase[0])
 					productVersion.append(productVersionBase[1])
@@ -125,7 +125,7 @@ class MssqlInfo:
 		Otherwise returns the product name
 		'''
 		productName = ""
-		for aVersionString, versions  in self.VERSIONS.iteritems():
+		for aVersionString, versions  in self.VERSIONS.items():
 			for aVersion in versions : 
 				pattern = re.compile(aVersion)
 				if pattern.match(productVersionString) != None: 
@@ -147,16 +147,17 @@ class MssqlInfo:
 		logging.info("The mssql-info script is sending a UDP packet to the SQL Server Browser to get the remote database version (without authentication)")
 		sock.settimeout(self.UDP_TIMEOUT_RCPT)
 		sock.sendto(struct.pack('B', 0x03), (self.host,self.sqlServerBrowserPort))
-		try : data = sock.recv(1024)
+		try :
+			data = sock.recv(1024)
 		except socket.timeout:
 			logging.info("The UDP port {0} is not opened on the server {1}".format(self.sqlServerBrowserPort, self.host))
 			return dataDict
 		else:
 			logging.debug("Data received: '{0}'".format(data))
 			logging.debug("Consequently, SQL Server Browser is eanbled :)".format(data))
-			dataSplit = data[3:].split(';')
-			dataDict = dict(izip_longest(*[iter(dataSplit)] * 2, fillvalue=""))
-			dataDict = dict((k, v) for k, v in dataDict.iteritems() if v != '')
+			dataSplit = str(data[3:]).split(';')
+			dataDict = dict(zip_longest(*[iter(dataSplit)] * 2, fillvalue=""))
+			dataDict = dict((str(k), v) for k, v in dataDict.items() if v != '')
 			dataDict['ProductName'] = self.__getProductNameFromVersion__(dataDict['Version'])
 			logging.debug("The product name of the version '{0}' retrieved through SQL Server Browser is '{1}'".format(dataDict['Version'],dataDict['ProductName']))
 			return dataDict
@@ -196,7 +197,7 @@ class MssqlInfo:
 		'''
 		'''
 		string = ""
-		for e,v in aDictionary.items(): string += '   -> {0}: {1}\n'.format(e,v)
+		for e,v in list(aDictionary.items()): string += '   -> {0}: {1}\n'.format(e,v)
 		return string
 			
 		
@@ -209,7 +210,7 @@ def runMssqlInfoModule(args):
 		mssqlInfo = MssqlInfo(args)
 		productName = mssqlInfo.__getRemoteVersionThroughTDSResponse__()
 		args['print'].title("Try to get the remote database version thanks to the TDS protocol:")
-		if productName.has_key('Version') == True and productName.has_key('ProductName') == True:
+		if ('Version' in productName) == True and ('ProductName' in productName) == True:
 			args['print'].goodNews("The SQL server version of {0}:{1}: {2} i.e. {3}".format(args['host'],args['port'], productName['Version'],productName['ProductName']))
 		else :
 			args['print'].badNews("Impossible to get the remote database version thanks to the TDS protocol")

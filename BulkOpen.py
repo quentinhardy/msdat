@@ -197,8 +197,8 @@ class BulkOpen (Mssql):#Mssql
 		else:
 			logging.info ("Account {0}/{1} is valid on the database {2}:{3}. Results of '{4}': {5}".format(login, password, ip, port, sqlRequest, repr(data[0])))
 		return data
-		
-	def __getAccounts__(self, accountsFile, credSeparator='/'):
+
+	def __getAccounts__(self, accountsFile):
 		'''
 		return list containing accounts
 		'''
@@ -206,15 +206,17 @@ class BulkOpen (Mssql):#Mssql
 		logging.info('Loading accounts stored in the {0} file...'.format(accountsFile))
 		f = open(accountsFile)
 		for l in f:
-			lsplit = cleanString(l).split(credSeparator)
-			if isinstance(lsplit,list):
-				if len(lsplit) == 2 : accounts.append([lsplit[0],lsplit[1]])
-				elif len(lsplit) > 2 :
+			lsplit = cleanString(l).split(self.args['separator'])
+			if isinstance(lsplit, list):
+				if len(lsplit) == 2:
+					accounts.append([lsplit[0], lsplit[1]])
+				elif len(lsplit) > 2:
 					tempPasswd = ""
-					for i in range(len(lsplit)): 
-						if i != 0 : tempPasswd += lsplit[i]
-					accounts.append([lsplit[0],tempPasswd])
-				else : logging.warning("The account '{0}' not contains '{1}' or it contains more than one '{1}'. This account will not be tested".format(lsplit[0],self.credSeparator))
+					for i in range(len(lsplit)):
+						if i != 0: tempPasswd += lsplit[i]
+					accounts.append([lsplit[0], tempPasswd])
+				else:
+					logging.warning("The account '{0}' not contains '{1}' or it contains more than one '{1}'. This account will not be tested".format(lsplit[0], self.args['separator']))
 		f.close()
 		logging.debug("Accounts loaded")
 		return sorted(accounts, key=lambda x: x[0])

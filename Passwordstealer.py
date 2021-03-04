@@ -57,14 +57,14 @@ class Passwordstealer (Mssql):
 				if anAccount['password'] == None:
 					line = "{0}:empty ({0} password is empty, not 'empty' -:)".format(anAccount['name'],None)
 				else:
-					line = "{0}:0x{1}".format(anAccount['name'],anAccount['password'].encode('hex'))
-				print line
+					line = "{0}:0x{1}".format(anAccount['name'],anAccount['password'].hex())
+				print (line)
 				if self.args['save-to-file'] != None: f.write(line+'\n')
 				if anAccount['name'].endswith('##') and anAccount['name'].startswith('##'):
 					certificateBasedSQLServerLogins.append(anAccount['name'])
 		if self.args['save-to-file'] != None: f.close()
 		if certificateBasedSQLServerLogins != []:
-			print '\nThese following logins are certificate-based SQL server logins (for internal system use only): {0}'.format(", ".join(certificateBasedSQLServerLogins))
+			print ('\nThese following logins are certificate-based SQL server logins (for internal system use only): {0}'.format(", ".join(certificateBasedSQLServerLogins)))
 		if self.args['save-to-file'] != None: logging.info("Hashed passwords saved in the file {0}".format(self.args['save-to-file']))
 		
 	def testAll (self):

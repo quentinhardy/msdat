@@ -100,10 +100,16 @@ def runSMBAuthenticationCaptureModule(args):
 	Run the SMBAuthenticationCapture module
 	'''
 	if checkOptionsGivenByTheUser(args,["capture","xp-dirtree-capture","xp-fileexist-capture","xp-getfiledetails-capture"],checkAccount=True) == False : return EXIT_MISS_ARGUMENT
-	if args["capture"] != None: smbAuthenticationCapture = SMBAuthenticationCapture(args,args['capture'][0],args['share-name'][0])
-	elif args["xp-dirtree-capture"] != None: smbAuthenticationCapture = SMBAuthenticationCapture(args,args["xp-dirtree-capture"][0],args['share-name'][0])
-	elif args["xp-fileexist-capture"] != None: smbAuthenticationCapture = SMBAuthenticationCapture(args,args["xp-fileexist-capture"][0],args['share-name'][0])
-	elif args["xp-getfiledetails-capture"] != None: smbAuthenticationCapture = SMBAuthenticationCapture(args,args["xp-getfiledetails-capture"][0],args['share-name'][0])
+	if args["capture"] != None:
+		smbAuthenticationCapture = SMBAuthenticationCapture(args,args['capture'][0],args['share-name'][0])
+	elif args["xp-dirtree-capture"] != None:
+		smbAuthenticationCapture = SMBAuthenticationCapture(args,args["xp-dirtree-capture"][0],args['share-name'][0])
+	elif args["xp-fileexist-capture"] != None:
+		smbAuthenticationCapture = SMBAuthenticationCapture(args,args["xp-fileexist-capture"][0],args['share-name'][0])
+	elif args["xp-getfiledetails-capture"] != None:
+		smbAuthenticationCapture = SMBAuthenticationCapture(args,args["xp-getfiledetails-capture"][0],args['share-name'][0])
+	else:
+		smbAuthenticationCapture = SMBAuthenticationCapture(args, "127.0.0.1", args['share-name'][0])
 	smbAuthenticationCapture.connect()
 	if args["test-module"] == True: smbAuthenticationCapture.testAll()
 	if args["capture"] != None:

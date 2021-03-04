@@ -3,7 +3,7 @@
 
 import logging
 from Utils import cleanString, ErrorClass
-import pymssql, _mssql, decimal
+import decimal
 from Constants import *
 from Mssql import Mssql
 from Utils import *
@@ -42,7 +42,6 @@ class Search (Mssql):#Mssql
 		Constructor
 		'''
 		Mssql.__init__(self, args=args)
-		self.maxWidthScreen = str(int(getScreenSize()[0]) - self.RIGHT_SPACE_SIZE)
 		
 	
 	def __searchPatternInColumnNamesOfTables__(self, pattern):
@@ -119,7 +118,7 @@ class Search (Mssql):#Mssql
 			if showThisColumn == True:
 				resultsToTable.append([e['column_name'],e['table_name'],e['schema_name'],anExample])
 		if colNb>0 : pbar.finish()
-		table = Texttable(max_width=self.maxWidthScreen)
+		table = Texttable(max_width=getScreenSize()[0])
 		table.set_deco(Texttable.HEADER)
 		table.add_rows(resultsToTable)
 		return table.draw()

@@ -45,13 +45,23 @@ def configureLogging(args):
 	logformatColor   = "%(bg_black)s%(asctime)s%(reset)s %(log_color)s%(levelname)-3s%(reset)s %(bold_black)s-:%(reset)s %(log_color)s%(message)s%(reset)s"#%(bold_black)s%(name)s:%(reset)s
 	datefmt = "%H:%M:%S"
 	#Set log level
-	if args['verbose']==0: level=logging.WARNING
-	elif args['verbose']==1: level=logging.INFO
-	elif args['verbose']>=2: level=logging.DEBUG
+	if "verbose" in args:
+		if args['verbose'] == 0:
+			level = logging.WARNING
+		elif args['verbose'] == 1:
+			level = logging.INFO
+		elif args['verbose'] == 2:
+			level = logging.DEBUG
+		elif args['verbose'] > 2:
+			level = logging.DEBUG
+			args['show_sql_requests'] = True
+	else:
+		level = level = logging.WARNING
 	#Define color for logs
-	if args['no-color'] == False and COLORLOG_AVAILABLE==True:
+	if 'no-color' in args and args['no-color'] == False and COLORLOG_AVAILABLE==True:
 		formatter = ColoredFormatter(logformatColor, datefmt=datefmt,log_colors={'CRITICAL': 'bold_red', 'ERROR': 'red', 'WARNING': 'yellow'})
-	else : 
+	else :
+		args['no-color'] = True
 		formatter = logging.Formatter(logformatNoColor, datefmt=datefmt)
 	stream = logging.StreamHandler()
 	stream.setFormatter(formatter)
@@ -89,7 +99,7 @@ def runAllModules(args):
 		for database in validDatabaseList:
 			args['print'].title("Searching valid accounts on the {0} database".format(database))
 			args['database'] = database
-			passwordGuesser = PasswordGuesser(args, usernamesFile=args['usernames-file'], passwordsFile=args['passwords-file'], accountsFile=args['accounts-file'])
+			passwordGuesser = PasswordGuesser(args, usernamesFile=args['usernames-file'], passwordsFile=args['passwords-file'], accountsFile=args['accounts-file'], separator=args['separator'])
 			status = passwordGuesser.searchValideAccounts()
 			if status == False: #Connection error during scan (perhaps host is unavailable now)
 				logging.error("Host is probably unavailable. Stopping for this host!")
@@ -100,17 +110,17 @@ def runAllModules(args):
 				return
 			else :
 				args['print'].goodNews("Accounts found on {0}:{1}/{2}: {3}. All modules will be started with this (these) account(s)".format(args['host'], args['port'], args['database'],validAccountsList))
-				for aLogin, aPassword in validAccountsList.items(): 
-					if connectionInformation.has_key(database) == False: connectionInformation[database] = [[aLogin,aPassword]]
+				for aLogin, aPassword in list(validAccountsList.items()): 
+					if (database in connectionInformation) == False: connectionInformation[database] = [[aLogin,aPassword]]
 					else : connectionInformation[database].append([aLogin,aPassword])
 	else :
 		validAccountsList = {args['user']:args['password']}
 		for database in validDatabaseList:
-			for aLogin, aPassword in validAccountsList.items():
-				if connectionInformation.has_key(database) == False: connectionInformation[database] = [[aLogin,aPassword]]
+			for aLogin, aPassword in list(validAccountsList.items()):
+				if (database in connectionInformation) == False: connectionInformation[database] = [[aLogin,aPassword]]
 				else : connectionInformation[database].append([aLogin,aPassword])
 	#C)ALL OTHERS MODULES
-	for aDatabase in connectionInformation.keys():
+	for aDatabase in list(connectionInformation.keys()):
 		for loginAndPass in connectionInformation[aDatabase]:
 			args['database'] , args['user'], args['password'] = aDatabase, loginAndPass[0],loginAndPass[1]
 			args['print'].title("Testing the '{0}' database with the account {1}/{2}".format(database,args['user'], args['password']))
@@ -163,6 +173,7 @@ def main():
 	PPoptional.add_argument('--accounts-file',dest='accounts-file',required=False,metavar="FILE",default=DEFAULT_ACCOUNT_FILE,help='file containing credentials to test (default: %(default)s)')
 	PPoptional.add_argument('--usernames-file',dest='usernames-file',required=False,metavar="FILE",default=None,help='file containing usernames to test (default: %(default)s)')
 	PPoptional.add_argument('--passwords-file',dest='passwords-file',required=False,metavar="FILE",default=None,help='file containing passwords to test (default: %(default)s)')
+	PPoptional.add_argument('--separator', dest='separator', required=False, default="/", help='separator for accounts file (default: %(default)s)')
 	#1.1- Parent parser: connection options
 	PPconnection = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
 	PPconnection._optionals.title = "connection options"
@@ -209,6 +220,7 @@ def main():
 	PPjobs.add_argument('--reverse-shell',dest='reverse-shell', required=False, nargs=2, metavar=('ip','port'), help='get a reverse interactive shell (with powershell)')
 	PPjobs.add_argument('--type',dest='type',required=False, type=str, default='CMDEXEC', choices=['CMDEXEC', 'POWERSHELL'], help='execution type (default: %(default)s)')
 	PPjobs.add_argument('--sp-name',dest='sp-name',required=False, type=str, default=DEFAULT_SP_NAME, help='set the stored proc name (default: %(default)s)')
+	PPjobs.add_argument('--print-jobs', dest='print-jobs', action='store_true',help='Print list of agents jobs and their code')
 	PPjobs.add_argument('--sleep-status',dest='sleep-status',required=False, type=int, default=SLEEP_TIME_BEFORE_TO_GET_STATUS, help='set the sleep time before to get the job status (default: %(default)s)')
 	#1.7- Parent parser: SMBAuthenticationCapture
 	PPSMBAuthenticationCapture = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
@@ -222,6 +234,7 @@ def main():
 	#1.8- Parent parser: OleAutomation
 	PPoleautomation = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
 	PPoleautomation._optionals.title = "ole automation options"
+	PPoleautomation.add_argument('--reverse-shell', dest='reverse-shell', required=False, nargs=2, metavar=('ip', 'port'), help='get a reverse interactive shell (with powershell)')
 	PPoleautomation.add_argument('--read-file',dest='read-file',default=None,required=False,nargs=1,metavar=('filename'),help='read a file')
 	PPoleautomation.add_argument('--write-file',dest='write-file',default=None,required=False,nargs=2,metavar=('filename','datatowrite'),help='write a file')
 	PPoleautomation.add_argument('--get-file',dest='get-file',default=None,required=False,nargs=2,metavar=('remotefilename','localfilename'),help='get a file')
@@ -325,7 +338,11 @@ def main():
 	args['print'] = Output(args)
 	#Start the good function
 	#if args['auditType']!='clean' and ipHasBeenGiven(args) == False : return EXIT_MISS_ARGUMENT
-	arguments.func(args)
+	if 'func' not in args:
+		logging.error("Use -h or --help for help message")
+		exit(EXIT_MISS_ARGUMENT)
+	else:
+		arguments.func(args)
 	exit(ALL_IS_OK)
 
 

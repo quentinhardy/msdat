@@ -104,7 +104,7 @@ class TrustworthyPE (Mssql):
 		if isinstance(isSysadmin,Exception): return isSysadmin
 		if isSysadmin == True:
 			msg = "The current user is already sysadmin, nothing to do"
-			logging.info(msg)
+			logging.warning(msg)
 			return ErrorClass(msg)
 		else :
 			currentUsername = self.getCurrentUser()
@@ -210,7 +210,7 @@ def runTrustworthyPEModule(args):
 			args['print'].badNews("Impossible to put the sysadmin privilege to the current user with this method: {0}".format(status))	
 	if args["drop-sysadmin"] == True:
 		args['print'].title("Try to drop sysadmin privilege to the current user")
-		continu = raw_input("Do you want really drop sysadmin privilege of the current user (y/N) ").lower() == 'y'
+		continu = input("Do you want really drop sysadmin privilege of the current user (y/N) ").lower() == 'y'
 		if continu == True:
 			status = trustworthyPE.cleanPE()
 			if status == True:

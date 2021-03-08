@@ -4,6 +4,7 @@
 import logging, argparse
 from sys import exit,stdout
 from Constants import *
+from libnmap.parser import NmapParser
 
 from Output import Output
 from Utils import cleanString, ErrorClass, databaseHasBeenGiven,ipOrNameServerHasBeenGiven
@@ -73,7 +74,20 @@ def runAllModulesOnEachHost(args):
 	'''
 	Run all modules (for each host)
 	'''
-	if args['hostlist'] != None:
+	if args['nmap-file'] != None:
+		nmapReport = NmapParser.parse_fromfile(args['nmap-file'])
+		for aHost in nmapReport.hosts:
+			hostAdress = aHost.address
+			for aService in aHost.services:
+				serviceName = aService.service.lower()
+				# Microsoft-SQL-Server service, opened on TCP only
+				if aService.state == 'open' and aService.protocol == "tcp" and serviceName == "ms-sql-s":
+					hostPort = aService.port
+					logging.info("Server {0} is running a MSSQL server (TCP) on {1}: {2}".format(hostAdress, hostPort, repr(aService)))
+					args['host'], args['port'] = hostAdress, hostPort
+					args['user'], args['password'] = None, None
+					runAllModules(args)
+	elif args['hostlist'] != None:
 		hosts = getHostsFromFile(args['hostlist'])
 		for aHost in hosts:
 			args['host'], args['port'] = aHost[0], aHost[1]
@@ -193,6 +207,7 @@ def main():
 	PPpassguesser._optionals.title = "password guesser options"
 	PPpassguesser.add_argument('--force-retry',dest='force-retry',action='store_true',help='allow to test multiple passwords for a user without ask you')
 	PPpassguesser.add_argument('-l', dest='hostlist', required=False, help='filename which contains hosts (one ip on each line: "ip:port" or "ip" only)')
+	PPpassguesser.add_argument('--nmap-file', dest='nmap-file', default=None, required=False, help='xml nmap file for getting targets')
 	PPpassguesser.add_argument('--search',dest='search',action='store_true',help='search valid credentials')
 	#1.3- Parent parser: MssqlInfo
 	PPmssqlinfo = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))

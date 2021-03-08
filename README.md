@@ -17,10 +17,12 @@ Usage examples of MSDAT:
 
 Tested on Microsof SQL database 2005, 2008, 2012, 2014 and 2016.
 
-Python 3 compatible only since version 2.0.
+Python 3 compatible __only__ since version 2.0.
 
 Changelog
 ====
+* Version __2.1__ (2020/03/04) :
+  * Option _--nmap-file_ for loading all mssql services from a XML nmap file (_python-libnmap_ has to be installed)
 * Version __2.0__ (2020/03/04) :
   * Python 2 to __Python 3__: MSDAT is compatible with __Python 3 only__ now. __Python 2 is not supported__.
   * Separator option in password guesser module
@@ -44,10 +46,13 @@ Features
 Thanks to MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool), you can (no exhaustive list):
 
 * __get technical information__ (ex: database version) of a MSSQL database without to be authenticated
+* load a nnmap file for scanning all MSSQL targets
 * __search MSSQL accounts__ with a dictionnary attack
 * __test each login as password__ (authentication required)
 * __get a windows shell__ on the database server with
   * xp_cmdshell
+  * OLE Automation
+  * Jobs
 * __download__ files remotely with:
   * OLE Automation
   * bulkinsert
@@ -75,6 +80,7 @@ Thanks to MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool), you
   * *xp_availablemedia*
 * __create folder__ with:
   * *xp_create_subdir*
+* search sensitive data in tables (e.g. credentials)  
  
 Installation
 ====
@@ -89,7 +95,7 @@ or download freetds on [http://www.freetds.org/](http://www.freetds.org/)
 
 Install python dependencies:
 ```bash
-sudo pip3 install cython colorlog termcolor pymssql argparse
+sudo pip3 install cython colorlog termcolor pymssql argparse python-libnmap
 sudo pip3 install argcomplete && sudo activate-global-python-argcomplete
 ```
 Add "use ntlmv2 = yes" in your freetds configuration file (ex: ```/etc/freetds/freetds.conf``` or ```/usr/local/etc/freetds.conf```).

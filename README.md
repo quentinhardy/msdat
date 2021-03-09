@@ -26,9 +26,9 @@ Changelog
 * Version __2.0__ (2020/03/04) :
   * Python 2 to __Python 3__: MSDAT is compatible with __Python 3 only__ now. __Python 2 is not supported__.
   * Separator option in password guesser module
-  * Improvments in error catching in --put-file option of _xpcmdshell_ module
-  * Improvments in reverse shell option of _jobs_ mobule
-  * OLE automation module - command execution improvments
+  * Improvements in error catching in --put-file option of _xpcmdshell_ module
+  * Improvements in reverse shell option of _jobs_ mobule
+  * OLE automation module - command execution improvements
   * OLE automation module - Powershell reverse shell implemented
   * new option for printing list of agents jobs and their code: _--print-jobs_
 * Version __1.2__ (2020/02/26) :

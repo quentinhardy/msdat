@@ -3,7 +3,7 @@
 
 import logging
 from Utils import cleanString, ErrorClass
-import pymssql, _mssql, decimal
+import pymssql,pymssql._mssql, decimal
 from Constants import *
 from progressbar import *
 

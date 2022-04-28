@@ -95,6 +95,11 @@ or download freetds on [http://www.freetds.org/](http://www.freetds.org/)
 
 Install python dependencies:
 ```bash
+sudo pip3 install -r requirements.txt
+sudo activate-global-python-argcomplete
+```
+or
+```bash
 sudo pip3 install cython colorlog termcolor pymssql argparse python-libnmap
 sudo pip3 install argcomplete && sudo activate-global-python-argcomplete
 ```

@@ -1,1 +1,7 @@
-
+cython
+colorlog
+termcolor
+pymssql
+argparse
+python-libnmap
+argcomplete

@@ -130,7 +130,7 @@ def runUsernameLikePassword(args):
 		args['print'].title("MSSQL users have not the password identical to the username ?")
 		usernameLikePassword.tryUsernameLikePassword()
 		if usernameLikePassword.validAccountsList == {}:
-			args['print'].badNews("No found a valid account on {0}:{1}".format(args['host'], args['port']))
+			args['print'].badNews("No found a valid account on {0}:{1} in UsernameLikePassword module".format(args['host'], args['port']))
 		else :
 			args['print'].goodNews("Accounts found on {0}:{1}: {2}".format(args['host'], args['port'],getCredentialsFormated(usernameLikePassword.validAccountsList)))
 

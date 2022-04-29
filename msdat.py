@@ -89,6 +89,7 @@ def runAllModulesOnEachHost(args):
 					logging.info("Server {0} is running a MSSQL server (TCP) on {1}: {2}".format(hostAdress, hostPort, repr(aService)))
 					args['host'], args['port'] = hostAdress, hostPort
 					args['user'], args['password'] = givenUser, givenPwd
+					args['print'].bigTitle("Working on this specific service now")
 					runAllModules(args)
 	elif args['hostlist'] != None:
 		hosts = getHostsFromFile(args['hostlist'])
@@ -98,6 +99,7 @@ def runAllModulesOnEachHost(args):
 		for aHost in hosts:
 			args['host'], args['port'] = aHost[0], aHost[1]
 			args['user'], args['password'] = givenUser, givenPwd
+			args['print'].bigTitle("Working on this specific service now")
 			runAllModules(args)
 	else:
 		runAllModules(args)
@@ -140,10 +142,18 @@ def runAllModules(args):
 				if (database in connectionInformation) == False: connectionInformation[database] = [[aLogin,aPassword]]
 				else : connectionInformation[database].append([aLogin,aPassword])
 	#C)ALL OTHERS MODULES
+	needRunUsernamelikepassword = True
 	for aDatabase in list(connectionInformation.keys()):
 		for loginAndPass in connectionInformation[aDatabase]:
 			args['database'] , args['user'], args['password'] = aDatabase, loginAndPass[0],loginAndPass[1]
 			args['print'].title("Testing the '{0}' database with the account {1}/{2}".format(database,args['user'], args['password']))
+			#Checking if connection is possible
+			mssql = Mssql(args)
+			status = mssql.connect(printErrorAsDebug=False)
+			if status != True:
+				logging.error("Connection impossible with this information. Stopping for this service...")
+				needRunUsernamelikepassword = False
+				break
 			#C.0)Trustworthy module (Privilege escalation)
 			trustworthyPE = TrustworthyPE(args)
 			status = trustworthyPE.connect()
@@ -175,8 +185,9 @@ def runAllModules(args):
 			bulkOpen.closeConnection()
 	
 	#usernamelikepassword
-	args['run'] = True
-	runUsernameLikePassword(args)
+	if needRunUsernamelikepassword == True:
+		args['run'] = True
+		runUsernameLikePassword(args)
 		
 def main():
 	#Parse Args

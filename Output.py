@@ -20,6 +20,16 @@ class Output ():
 		self.noColor = args['no-color']
 		self.titlePos = 0
 		self.subTitlePos = 0
+    
+	def bigTitle (self, m):
+		'''
+		print a title
+		'''
+		self.titlePos = 0
+		self.subTitlePos = 0
+		formatMesg = '\n[+] {1}: {2}'.format(self.titlePos,'({0}:{1})'.format(self.args['host'],self.args['port']),m)
+		if self.noColor == True or TERMCOLOR_AVAILABLE == False: print (formatMesg)
+		else : print (colored(formatMesg, 'white',attrs=['bold']))
 
 	def title (self, m):
 		'''

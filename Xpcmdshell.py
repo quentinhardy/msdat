@@ -50,7 +50,7 @@ class Xpcmdshell (Mssql):
 		return True if Ok, otherwise returns an Error object
 		'''
 		logging.info("Re-enabling the xp_cmdshell stored procedure...")
-		if self.isThe2008Version() or self.isThe2005Version() or self.isThe2012Version() or self.isThe2014Version():
+		if self.isThe2008Version() or self.isThe2005Version() or self.isThe2012Version() or self.isThe2014Version() or self.isThe2016Version() or self.isThe2017Version() or self.isThe2019Version():
 			data = self.executeRequest(self.REQ_ENABLE_XPCMDSHELL1_V2008,noResult=True)
 			if isinstance(data,Exception): return data
 			data = self.executeRequest(self.REQ_ENABLE_XPCMDSHELL2_V2008,noResult=True)
@@ -75,7 +75,7 @@ class Xpcmdshell (Mssql):
 		return True if Ok, otherwise returns an Error object
 		'''
 		logging.info("Disabling the xp_cmdshell stored procedure...")
-		if self.isThe2008Version() or self.isThe2005Version() or self.isThe2012Version() or self.isThe2014Version():
+		if self.isThe2008Version() or self.isThe2005Version() or self.isThe2012Version() or self.isThe2014Version() or self.isThe2016Version() or self.isThe2017Version() or self.isThe2019Version():
 			data = self.executeRequest(self.REQ_DISABLE_XPCMDSHELL1_V2008,noResult=True)
 			if isinstance(data,Exception): return data
 			data = self.executeRequest(self.REQ_DISABLE_XPCMDSHELL2_V2008,noResult=True)

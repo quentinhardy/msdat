@@ -319,8 +319,8 @@ def main():
 	PPsearch.add_argument('--column-names',dest='column-names',default=None,required=False,metavar='sqlPattern',help='search a pattern in all collumns')
 	PPsearch.add_argument('--pwd-column-names',dest='pwd-column-names',default=None,action='store_true',help='search password patterns in all collumns')
 	PPsearch.add_argument('--no-show-empty-columns',dest='no-show-empty-columns',action='store_true',help="don't show columns if columns are empty")
-	PPsearch.add_argument('--schema-dump',dest='schema-dump',default=None,required=False,metavar='path',help="extract the schema and save in file")
-	PPsearch.add_argument('--table-dump',dest='table-dump',default=None,required=False,metavar='path',help="extract all tables and save in file")
+	PPsearch.add_argument('--schema-dump',dest='schema-dump',default=None,required=False,metavar='path',help="extract the schema and save in file (except for default DBs)")
+	PPsearch.add_argument('--table-dump',dest='table-dump',default=None,required=False,metavar='path',help="extract all tables and save in file (except for default DBs)")
 	PPsearch.add_argument('--sql-shell', dest='sql-shell', action='store_true',help="start a minimal interactive SQL shell")
 	PPsearch.add_argument('--test-module',dest='test-module',action='store_true',help='test the module before use it')
     #1.14- Parent parser: All

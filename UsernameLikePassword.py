@@ -38,7 +38,7 @@ class UsernameLikePassword (Mssql):
 		'''
 		logging.info ("Stealing MSSQL users thanks to the SUSER_NAME function...")
 		validUsers, selectData, selectAttr = [], [], []
-		if self.isThe2008Version() or self.isThe2012Version() or self.isThe2014Version():
+		if self.isThe2008Version() or self.isThe2012Version() or self.isThe2014Version() or self.isThe2016Version() or self.isThe2017Version() or self.isThe2019Version():
 			logging.debug ("The current version of MSSQL implements the SUSER_NAME function")
 			for aServerUserId in range (NB_SERVER_USER_ID_MAX):
 				selectData.append("SUSER_NAME({0})".format(aServerUserId+1))

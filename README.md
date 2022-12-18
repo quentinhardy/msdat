@@ -1,7 +1,8 @@
 | __Quentin HARDY__    |
 | ------------- |
-| __quentin.hardy@bt.com__    |
 | __quentin.hardy@protonmail.com__  |
+| __quentin.hardy@bt.com__    |
+
 
 
 MSDAT
@@ -15,12 +16,15 @@ Usage examples of MSDAT:
 * You have a valid Microsoft SQL account on a database and you want to __escalate your privileges__
 * You have a valid Microsoft SQL account and you want to __execute commands on the operating system__ hosting this DB (e.g. xp_cmdshell, OLE Automation, Agent Jobs)
 
-Tested on Microsof SQL database 2005, 2008, 2012, 2014 and 2016.
-
-Python 3 compatible __only__ since version 2.0.
+Tested on Microsof SQL database 2005, 2008, 2012, 2014, 2016 and __2019__.
 
 Changelog
 ====
+* Version __2.3__ (2022/12/18) :
+  * compataible with Microsoft SQL Server 2019
+  * new option --schema-dump in search module for extract the schema and save in file (except for default DBs)
+  * new option --table-dump in search module for extracting all tables and save in file (except for default DBs)
+  * new option --sql-shell in search module for getting a minimal pseudo SQL shell
 * Version __2.2__ (2022/04/29) :
   * _--nmap-file_ and _-l_ can be used in _all_ module and _passwordguesser_ module now. You can give a list of targets with _-l_ or a nmap file with _--nmap-file_.
   * Multiple bug fixes

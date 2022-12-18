@@ -386,7 +386,10 @@ class Texttable:
                         return str(x)
                     if isinstance(x, datetime):
                         return str(x)
-                    return str(x.encode('utf-8'))
+                    if isinstance(x, (bytes, bytearray)):
+                        return x.decode("utf-8",errors = 'backslashreplace')
+                    else:
+                        return str(x.encode('utf-8'))
 
         """
         n = self._precision

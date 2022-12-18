@@ -8,6 +8,7 @@ from Constants import *
 from Mssql import Mssql
 from Utils import *
 from texttable import Texttable
+import readline
 
 class Search (Mssql):#Mssql
 	'''
@@ -226,14 +227,14 @@ class Search (Mssql):#Mssql
 		Start an interactive SQL shell (limited)
 		Return True when finished
 		"""
-		print("Ctrl-D to close the SQL shell")
+		print("Ctrl-D to close the SQL shell. Use ENTER twice for committing a request")
 		while True:
 			theLine = None
 			allLines = ""
-			print("SQL> ", end='')
+			#print("SQL> ", end='')
 			while theLine != "":
 				try:
-					theLine = input()
+					theLine = input("SQL> ")
 				except EOFError:
 					print("\nSQL shell closed")
 					return True
@@ -245,7 +246,6 @@ class Search (Mssql):#Mssql
 				elif results==[]:
 					print("Executed successfully but no result")
 				else:
-					print("--------",repr(results))
 					resultsToTable = [tuple(results[0].keys())]
 					for aLine in results:
 						resultsToTable.append(tuple(aLine.values()))
@@ -282,14 +282,14 @@ def runSearchModule(args):
 	if args['schema-dump'] != None:
 		outFile = args['schema-dump']
 		args['print'].title("Extracting schema and saving in {0}".format(outFile))
-		args['print'].title("Keep calm and wait... Can take minutes!".format(outFile))
+		args['print'].goodNews("Keep calm and wait... Can take minutes!".format(outFile))
 		search.saveSchema(pathToOutFile=args['schema-dump'])
-		args['print'].title("Results saved in {0}:".format(args['table-dump']))
+		args['print'].goodNews("Results saved in {0}:".format(args['table-dump']))
 	if args['table-dump'] != None:
 		outFile = args['table-dump']
 		args['print'].title("Extracting table and saving in {0}".format(outFile))
 		search.saveTables(pathToOutFile=args['table-dump'])
-		args['print'].title("Results saved in {0}:".format(args['table-dump']))
+		args['print'].goodNews("Results saved in {0}:".format(args['table-dump']))
 	if args['sql-shell'] == True:
 		args['print'].title("Starting an interactive SQL shell")
 		search.startInteractiveSQLShell()

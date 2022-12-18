@@ -112,8 +112,6 @@ def runAllModules(args):
 	status = ipOrNameServerHasBeenGiven(args)
 	if status == False: return EXIT_MISS_ARGUMENT
 	#A)REMOTE VERSION
-	###########mssqlInfo = MssqlInfo(args)
-	###########mssqlInfo.testAll()
 	if databaseHasBeenGiven(args):
 		validDatabaseList = [args['database']]
 	#B)ACCOUNT MANAGEMENT

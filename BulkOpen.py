@@ -30,7 +30,7 @@ class BulkOpen (Mssql):#Mssql
 	REQ_OPENROWSET_REMOTE_CONNECTION = "SELECT * FROM OPENROWSET('SQLNCLI','DRIVER={{SQL Server}};SERVER={0},{4};UID={1};PWD={2};DATABASE={3}','{5}')"#{0} IP, {1} login, {2} password, {3} databse, {4} port , {5} sql request (ex: select @@ServerName)
 	#ERRORS
 	ERROR_CANNOT_BULK_OPEN_NOT_EXIST_1 = "Cannot bulk load. The file"
-	ERROR_CANNOT_BULK_OPEN_NOT_EXIST_2 = "does not exist."
+	ERROR_CANNOT_BULK_OPEN_NOT_EXIST_2 = "does not exist"
 
 	def __init__(self, args):
 		'''

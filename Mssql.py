@@ -17,6 +17,9 @@ class Mssql ():
 	ERROR_ACCOUNT_INVALID = "Login failed for user "
 	ERROR_UNTRUSTED_DOMAIN = "The login is from an untrusted domain and cannot be used with Windows authentication." #Credentials are not valid
 	ERROR_UNABLE_TO_CONNECT = "Unable to connect:"
+	MS2019_BANNER = "Microsoft SQL Server 2019"
+	MS2017_BANNER = "Microsoft SQL Server 2017"
+	MS2016_BANNER = "Microsoft SQL Server 2016"
 	MS2014_BANNER = "Microsoft SQL Server 2014"
 	MS2012_BANNER = "Microsoft SQL Server 2012"
 	MS2008_BANNER = "Microsoft SQL Server 2008"
@@ -113,7 +116,7 @@ class Mssql ():
 		if self.args['connection'] != None :
 			try: self.args['connection'].close()
 			except Exception as e: return ErrorClass(e)
-			else: 	
+			else:   
 				logging.debug("Connection closed")
 				return True
 		else:
@@ -157,7 +160,7 @@ class Mssql ():
 		else :
 			errorMsg = "A cursor has not been created to the {0} database server".format(self) 
 			logging.error(errorMsg)
-			return ErrorClass(errorMsg)	
+			return ErrorClass(errorMsg) 
 
 	def getCompleteVersion (self):
 		'''
@@ -182,7 +185,32 @@ class Mssql ():
 		if self.completeVersion == None : 
 				self.completeVersion = self.getCompleteVersion()
 				return True
-		else : return False
+		else : 
+			return False
+		
+	def isThe2019Version (self):
+		'''
+		Return True if version 2019, else return False
+		'''
+		self.__loadCompleteVersionIfNeed__()
+		if self.MS2019_BANNER in self.completeVersion : return True
+		else: return False
+		
+	def isThe2017Version (self):
+		'''
+		Return True if version 2017, else return False
+		'''
+		self.__loadCompleteVersionIfNeed__()
+		if self.MS2017_BANNER in self.completeVersion : return True
+		else: return False
+		
+	def isThe2016Version (self):
+		'''
+		Return True if version 2016, else return False
+		'''
+		self.__loadCompleteVersionIfNeed__()
+		if self.MS2016_BANNER in self.completeVersion : return True
+		else: return False
 		
 	def isThe2014Version (self):
 		'''
@@ -190,7 +218,7 @@ class Mssql ():
 		'''
 		self.__loadCompleteVersionIfNeed__()
 		if self.MS2014_BANNER in self.completeVersion : return True
-		else: return False	
+		else: return False
 
 	def isThe2012Version (self):
 		'''
@@ -198,7 +226,7 @@ class Mssql ():
 		'''
 		self.__loadCompleteVersionIfNeed__()
 		if self.MS2012_BANNER in self.completeVersion : return True
-		else: return False		
+		else: return False
 
 	def isThe2008Version (self):
 		'''
@@ -240,7 +268,7 @@ class Mssql ():
 			return data
 		else:
 			logging.debug("We are in the database {0}".format(name)) 
-			return True	
+			return True 
 
 	def isCurrentUserSysadmin(self):
 		'''

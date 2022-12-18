@@ -3,7 +3,7 @@
 
 import logging
 from Utils import cleanString, ErrorClass
-import pymssql,pymssql._mssql, decimal
+import pymssql, decimal
 from Constants import *
 from progressbar import *
 
@@ -121,7 +121,7 @@ class Mssql ():
 			logging.error(errorMsg)
 			return ErrorClass(errorMsg)
 
-	def executeRequest (self, request, ld=[], noResult=False):
+	def executeRequest (self, request, ld=[], noResult=False, autoLD=False):
 		'''
 		Execute request
 		ld: list containing all name of columns
@@ -142,15 +142,18 @@ class Mssql ():
 				try:
 					results = self.args['cursor'].fetchall()
 				except Exception as e: return ErrorClass(e)
-				if ld==[] : return results
-				else :
-					values = []
-					for line in results:
-						dico = {}
-						for i in range(len(line)): dico[ld[i]] = line[i]
-						values.append(dico)
-					return values
-				return dataList
+				if ld==[]:
+					if autoLD == True:
+						ld = [item[0] for item in self.args['cursor'].description]
+					else:
+						return results
+				values = []
+				for line in results:
+					dico = {}
+					for i in range(len(line)): 
+						dico[ld[i]] = line[i]
+					values.append(dico)
+				return values
 		else :
 			errorMsg = "A cursor has not been created to the {0} database server".format(self) 
 			logging.error(errorMsg)

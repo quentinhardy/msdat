@@ -225,14 +225,10 @@ def main():
 	PPpassguesser.add_argument('--force-retry',dest='force-retry',action='store_true',help='allow to test multiple passwords for a user without ask you')
 	PPpassguesser.add_argument('-l', dest='hostlist', required=False, help='filename which contains hosts (one ip on each line: "ip:port" or "ip" only)')
 	PPpassguesser.add_argument('--nmap-file', dest='nmap-file', default=None, required=False, help='xml nmap file for getting targets')
-	#PPpassguesser.add_argument('--search',dest='search',action='store_true',help='search valid credentials')
 	#1.3- Parent parser: Password Guesser for all module
 	PPpassguesserlight = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
 	PPpassguesserlight._optionals.title = "password guesser options (in all module)"
 	PPpassguesserlight.add_argument('--force-retry',dest='force-retry',action='store_true',help='allow to test multiple passwords for a user without ask you')
-	#PPpassguesserlight.add_argument('-l', dest='hostlist', required=False, help='filename which contains hosts (one ip on each line: "ip:port" or "ip" only)')
-	#PPpassguesserlight.add_argument('--nmap-file', dest='nmap-file', default=None, required=False, help='xml nmap file for getting targets')
-	#PPpassguesserlight.add_argument('--search',dest='search',action='store_true',help='search valid credentials')
 	#1.3- Parent parser: MssqlInfo
 	PPmssqlinfo = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
 	PPmssqlinfo._optionals.title = "mssql info options"
@@ -323,6 +319,9 @@ def main():
 	PPsearch.add_argument('--column-names',dest='column-names',default=None,required=False,metavar='sqlPattern',help='search a pattern in all collumns')
 	PPsearch.add_argument('--pwd-column-names',dest='pwd-column-names',default=None,action='store_true',help='search password patterns in all collumns')
 	PPsearch.add_argument('--no-show-empty-columns',dest='no-show-empty-columns',action='store_true',help="don't show columns if columns are empty")
+	PPsearch.add_argument('--schema-dump',dest='schema-dump',default=None,required=False,metavar='path',help="extract the schema and save in file")
+	PPsearch.add_argument('--table-dump',dest='table-dump',default=None,required=False,metavar='path',help="extract all tables and save in file")
+	PPsearch.add_argument('--sql-shell', dest='sql-shell', action='store_true',help="start a minimal interactive SQL shell")
 	PPsearch.add_argument('--test-module',dest='test-module',action='store_true',help='test the module before use it')
     #1.14- Parent parser: All
 	PPall = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))

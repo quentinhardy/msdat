@@ -36,6 +36,10 @@ class Search (Mssql):#Mssql
 	EXEMPLE_VALUE_LEN_MAX = 40
 	RIGHT_SPACE_SIZE = 40
 	TRUNCATED_MESSAGE_EXEMPLE = '(Truncated...)'
+	EXCLUDED_DATABASES = ['model', 'master', 'msdb', 'tempdb']
+	REQ_GET_DATABASES_NAMES = """SELECT name FROM master..sysdatabases"""
+	REQ_GET_TABLES_FOR_A_DB_NAME = """SELECT name, id FROM {0}..sysobjects WHERE xtype = 'U'"""#{0} Database name
+	REQ_GET_COLUMNS = """SELECT syscolumns.name, systypes.name FROM {0}..syscolumns JOIN {0}..systypes ON syscolumns.xtype=systypes.xtype WHERE syscolumns.id={1}"""#{0} Database name, {1} table id
 	
 	def __init__ (self, args=None):
 		'''
@@ -133,12 +137,129 @@ class Search (Mssql):#Mssql
 			return True
 		else : 
 			return False
+			
+	def getDatabaseNames(self):
+		'''
+		Returns database names in a list
+		Returns None if an error
+		'''
+		dbNames = []
+		data = self.executeRequest(self.REQ_GET_DATABASES_NAMES, ld=['name'], noResult=False)
+		if isinstance(data,Exception):
+			logging.error("Impossible to get database names: '{0}'".format(data))
+			return None
+		for aDB in data:
+			dbNames.append(aDB['name'])
+		logging.debug("Database found: {0}".format(dbNames))
+		return dbNames
+		
+	def getAllTables(self, minusDB=EXCLUDED_DATABASES):
+		'''
+		Return all tables for each database minus databases in minusDB
+		'''
+		tables = {}
+		allDatabases = self.getDatabaseNames()
+		if allDatabases == None:
+			logging.error("Impossible to get tables without database names")
+			return None
+		for aDBToExcl in minusDB:
+			allDatabases.remove(aDBToExcl)
+		logging.info("Tables in following databases are excluded: {0}".format(minusDB))
+		for aDBname in allDatabases:
+			tables[aDBname]=[]
+			logging.info("Getting tables for {0} database...".format(aDBname))
+			data = self.executeRequest(self.REQ_GET_TABLES_FOR_A_DB_NAME.format(aDBname), ld=['name','id'], noResult=False)
+			if isinstance(data,Exception):
+				logging.warning("Impossible to get tables for database {0}: '{1}'".format(aDBname,data))
+			else:
+				for aTableInfo in data:
+					tables[aDBname].append(aTableInfo)
+		return tables
+		
+	def getAllTablesAndColumns(self,minusDB=EXCLUDED_DATABASES):
+		'''
+		Return all tables & columns for each database minus databases in minusDB
+		'''
+		columns={}
+		tables = self.getAllTables(minusDB=minusDB)
+		for aDBName in tables:
+			for aTableName in tables[aDBName]:
+				data = self.executeRequest(self.REQ_GET_COLUMNS.format(aDBName,aTableName['id']), ld=['name','type'], noResult=False)
+				if isinstance(data,Exception):
+					logging.warning("Impossible to get columns of table {0}.{1}: '{2}'".format(aDBname,aTableName['name'],data))
+				else:
+					columns[aTableName['id']]=[]
+					for aColumn in data:
+						columns[aTableName['id']].append(aColumn)
+		return tables, columns
+		
+	def saveSchema(self, pathToOutFile, minusDB=EXCLUDED_DATABASES):
+		"""
+		Save all tables in output file
+		"""
+		tables, columns = self.getAllTablesAndColumns(minusDB=minusDB)
+		logging.info("Saving results in {0}:".format(pathToOutFile))
+		f = open(pathToOutFile,"w")
+		for aDBName in tables:
+			f.write("Database {0}:\n".format(repr(aDBName)))
+			for aTableName in tables[aDBName]:
+				f.write("\t- {0}\n".format(aTableName['name']))
+				for aColumn in columns[aTableName['id']]:
+					f.write("\t\t- {0} ({1})\n".format(aColumn['name'], aColumn['type']))
+		f.close()
+		
+	def saveTables(self, pathToOutFile, minusDB=EXCLUDED_DATABASES):
+		"""
+		Save all tables in output file
+		"""
+		tables = self.getAllTables(minusDB=minusDB)
+		logging.info("Saving results in {0}:".format(pathToOutFile))
+		f = open(pathToOutFile,"w")
+		for aDBName in tables:
+			f.write("Database {0}:\n".format(repr(aDBName)))
+			for aTableName in tables[aDBName]:
+				f.write("\t- {0}\n".format(aTableName['name']))
+		f.close()
+		
+	def startInteractiveSQLShell(self):
+		"""
+		Start an interactive SQL shell (limited)
+		Return True when finished
+		"""
+		print("Ctrl-D to close the SQL shell")
+		while True:
+			theLine = None
+			allLines = ""
+			print("SQL> ", end='')
+			while theLine != "":
+				try:
+					theLine = input()
+				except EOFError:
+					print("\nSQL shell closed")
+					return True
+				allLines += theLine
+			if allLines != "":
+				results = self.executeRequest(allLines, ld=[], noResult=False, autoLD=True)
+				if isinstance(results,Exception):
+					print(results)
+				elif results==[]:
+					print("Executed successfully but no result")
+				else:
+					print("--------",repr(results))
+					resultsToTable = [tuple(results[0].keys())]
+					for aLine in results:
+						resultsToTable.append(tuple(aLine.values()))
+					table = Texttable(max_width=getScreenSize()[0])
+					table.set_deco(Texttable.HEADER)
+					table.add_rows(resultsToTable)
+					print(table.draw())
+			
 		
 def runSearchModule(args):
 	'''
 	Run the Search module
 	'''
-	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module"],checkAccount=True) == False : 
+	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module","schema-dump", "table-dump",'sql-shell'],checkAccount=True) == False : 
 		return EXIT_MISS_ARGUMENT
 	search = Search(args)
 	search.connect(printErrorAsDebug=False, stopIfError=True)
@@ -158,5 +279,19 @@ def runSearchModule(args):
 			else :
 				args['print'].goodNews("Result(s) found for the pattern '{0}':".format(aPwdPattern))
 				args['print'].goodNews(aResult)
+	if args['schema-dump'] != None:
+		outFile = args['schema-dump']
+		args['print'].title("Extracting schema and saving in {0}".format(outFile))
+		args['print'].title("Keep calm and wait... Can take minutes!".format(outFile))
+		search.saveSchema(pathToOutFile=args['schema-dump'])
+		args['print'].title("Results saved in {0}:".format(args['table-dump']))
+	if args['table-dump'] != None:
+		outFile = args['table-dump']
+		args['print'].title("Extracting table and saving in {0}".format(outFile))
+		search.saveTables(pathToOutFile=args['table-dump'])
+		args['print'].title("Results saved in {0}:".format(args['table-dump']))
+	if args['sql-shell'] == True:
+		args['print'].title("Starting an interactive SQL shell")
+		search.startInteractiveSQLShell()
 	search.closeConnection()
 

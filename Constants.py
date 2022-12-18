@@ -19,7 +19,7 @@ DESCRIPTION = ""\
 
 By Quentin Hardy (quentin.hardy@protonmail.com)
 '''
-CURRENT_VERSION = "Version 2.2 - 2022/04/29"
+CURRENT_VERSION = "Version 2.3 - 2022/12/18"
 DEFAULT_TIME_SLEEP = 0
 DEFAULT_LOGIN_TIMEOUT = 5
 DEFAULT_CHARSET = 'UTF-8'

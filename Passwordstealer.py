@@ -35,8 +35,10 @@ class Passwordstealer (Mssql):
 		'''
 		logging.info ("Dumping hashed password on the database server...")
 		data = {}
-		if self.isThe2005Version() or self.isThe2008Version() or self.isThe2012Version() or self.isThe2014Version(): data = self.executeRequest(self.REQ_HASH_DUMP_V2005,['name','password'])
-		elif self.isThe2000Version() : data = self.executeRequest(self.REQ_HASH_DUMP_V2000,['name','password'])
+		if self.isThe2005Version() or self.isThe2008Version() or self.isThe2012Version() or self.isThe2014Version() or self.isThe2016Version() or self.isThe2017Version() or self.isThe2019Version(): 
+			data = self.executeRequest(self.REQ_HASH_DUMP_V2005,['name','password'])
+		elif self.isThe2000Version():
+			data = self.executeRequest(self.REQ_HASH_DUMP_V2000,['name','password'])
 		else:
 			logging.warning ("Impossible to determine the remote database version from the following version string: '{0}'".format(self.getCompleteVersion()))
 			return False

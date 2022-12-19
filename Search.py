@@ -41,14 +41,27 @@ class Search (Mssql):#Mssql
 	REQ_GET_DATABASES_NAMES = """SELECT name FROM master..sysdatabases"""
 	REQ_GET_TABLES_FOR_A_DB_NAME = """SELECT name, id FROM {0}..sysobjects WHERE xtype = 'U'"""#{0} Database name
 	REQ_GET_COLUMNS = """SELECT syscolumns.name, systypes.name FROM {0}..syscolumns JOIN {0}..systypes ON syscolumns.xtype=systypes.xtype WHERE syscolumns.id={1}"""#{0} Database name, {1} table id
+	REQ_GET_PATH_LOCAL_FILES = """SELECT name,  physical_name FROM sys.master_files"""
+	REQ_GET_INSTANCE_INFORMATION = """
+	SELECT SERVERPROPERTY('ComputerNamePhysicalNetBIOS') as NetBios, 
+	SERVERPROPERTY('Edition') as Edition, 
+	SERVERPROPERTY('InstanceDefaultDataPath') as InstanceDefaultDataPath, 
+	SERVERPROPERTY('InstanceDefaultLogPath') as InstanceDefaultLogPath,
+	SERVERPROPERTY('MachineName') as Host, SERVERPROPERTY('InstanceName') as Instance, 
+	SERVERPROPERTY('ProductLevel') as ProductLevel, 
+	SERVERPROPERTY('ProductVersion') as ProductVersion, 
+	SERVERPROPERTY('SqlCharSetName') as SqlCharSetName, 
+	Case SERVERPROPERTY('IsClustered') when 1 then 'CLUSTERED' else 'STANDALONE' end  as ServerType,
+	Case SERVERPROPERTY('IsIntegratedSecurityOnly') when 1 then 'WINDOWS_AUTHENT_ONLY' else 'WINDOWS_AUTHENT_AND_SQL_SERVER_AUTH' end  as ServerType, 
+	@@VERSION as VersionNumber"""
 	
 	def __init__ (self, args=None):
 		'''
 		Constructor
 		'''
 		Mssql.__init__(self, args=args)
-		
-	
+		self._lastDBname = None #Use when moving to another db and we would like to come back to last one after
+
 	def __searchPatternInColumnNamesOfTables__(self, pattern):
 		'''
 		Search the pattern in column names of all tables
@@ -110,14 +123,14 @@ class Search (Mssql):#Mssql
 			if isinstance(anExample,Exception): 
 				anExample=self.DEFAULT_VALUE_UNKNOWN
 			elif anExample==[] or anExample==[{}]:
-				if noShowEmptyColumns == False:	showThisColumn = True
-				else : 							showThisColumn = False
+				if noShowEmptyColumns == False: showThisColumn = True
+				else :                          showThisColumn = False
 				anExample=self.DEFAULT_VALUE_EMPTY_COLUMN
 			else :
 				anExample = repr(anExample[0][e['column_name']])
 				if len(anExample)>2 :
-					if anExample[0:2]=="u'" and anExample[-1] == "'":	anExample = anExample [2:-1]
-					if anExample[0]=="'" and anExample[-1] == "'":		anExample = anExample [1:-1]
+					if anExample[0:2]=="u'" and anExample[-1] == "'":   anExample = anExample [2:-1]
+					if anExample[0]=="'" and anExample[-1] == "'":      anExample = anExample [1:-1]
 				if len(anExample)>self.EXEMPLE_VALUE_LEN_MAX:
 					anExample = anExample[:self.EXEMPLE_VALUE_LEN_MAX]+' '+self.TRUNCATED_MESSAGE_EXEMPLE
 			if showThisColumn == True:
@@ -253,16 +266,94 @@ class Search (Mssql):#Mssql
 					table.set_deco(Texttable.HEADER)
 					table.add_rows(resultsToTable)
 					print(table.draw())
+					
+	def moveToMasterDBIfRequired(self):
+		'''
+		Returns True if OK
+		Returns Exception if error
+		'''
+		self._lastDBname = self.getDBName()
+		if isinstance(self._lastDBname,Exception):
+			return self._lastDBname
+		if self._lastDBname == "master":
+			logging.info("Currently on master database, nothing to do")
+		else:
+			return self.useThisDB('master')
 			
+	def comeBackToLastDBIfRequired(self):
+		'''
+		Returns True if OK
+		Returns Exception if error
+		Returns None if critical bug in code
+		'''
+		if self._lastDBname == "master":
+			logging.info("Last database was on master, nothing to do")
+			return True
+		elif self._lastDBname == None:
+			logging.critical("Bug in code with comeBackToLastDBIfRequired()")
+			return None
+		else:
+			return self.useThisDB(self._lastDBname)
+		
+	
+	def getLocationDataFilesLogFiles(self):
+		'''
+		Get Location of Data Files and Log Files in SQL Server
+		REQUIREMENT: Has to be executed on MASTER database
+		'''
+		data = self.executeRequest(self.REQ_GET_PATH_LOCAL_FILES, ld=['name','physical_name'], noResult=False)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get Data Files and Log Files: '{0}'".format(data))
+		else:
+			return data
+	
+	def printRemoteDatabaseConfig(self):
+		'''
+		print remote DB configuration
+		'''
+		self.moveToMasterDBIfRequired()
+		data = self.getLocationDataFilesLogFiles()
+		if isinstance(data,Exception) == False:
+			print("# Location of Data Files and Log Files in SQL Server")
+			for e in data:
+				print("\t- {0}: {1}".format(e['name'], e['physical_name']))
+		self.comeBackToLastDBIfRequired()
+		
+	def getInstanceInformation(self):
+		'''
+		Get SQL Server Instance information
+		REQUIREMENT: Has to be executed on MASTER database
+		'''
+		data = self.executeRequest(self.REQ_GET_INSTANCE_INFORMATION, noResult=False, autoLD=True,)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get SQL Server Instance information: '{0}'".format(data))
+		else:
+			return data
+			
+	def printInstanceInformation(self):
+		'''
+		print remote DB configuration
+		'''
+		self.moveToMasterDBIfRequired()
+		data = self.getInstanceInformation()
+		if isinstance(data,Exception) == False:
+			print("# SQL Server Instance information")
+			for aK in data[0]:
+				print("\t- {0}: {1}".format(aK, data[0][aK]))
+		self.comeBackToLastDBIfRequired()
 		
 def runSearchModule(args):
 	'''
 	Run the Search module
 	'''
-	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module","schema-dump", "table-dump",'sql-shell'],checkAccount=True) == False : 
+	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module","schema-dump", "table-dump",'sql-shell','get-config'],checkAccount=True) == False : 
 		return EXIT_MISS_ARGUMENT
 	search = Search(args)
 	search.connect(printErrorAsDebug=False, stopIfError=True)
+	if args['get-config'] == True:
+		args['print'].title("Getting database configuration")
+		search.printInstanceInformation()
+		search.printRemoteDatabaseConfig()
 	if args['column-names'] != None:
 		args['print'].title("Searching the pattern '{0}' in column names of all views and tables accessible to the current user (each database accessible by current user shoud be tested manually)".format(args['column-names']))
 		table= search.searchInColumnNames(args['column-names'],noShowEmptyColumns=args['no-show-empty-columns'])

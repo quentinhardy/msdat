@@ -363,3 +363,23 @@ class Mssql ():
 			msg = "Impossible to get the current database name because the result is empty"
 			logging.warning(msg)
 			return ErrorClass(msg)
+			
+	def getUsernamesViaSyslogins(self):
+		'''
+		Get all usernames from the syslogins table
+		Returns list of usernames of no problem. Otherwise returns an exception
+		'''
+		QUERY = "SELECT name FROM master..syslogins"
+		logging.info('Get all usernames from the syslogins table...')
+		response = self.executeRequest(request=QUERY,ld=['username'])
+		if isinstance(response,Exception) :
+			logging.info('Error with the SQL request {0}: {1}'.format(QUERY,str(response)))
+			return response
+		else:
+			allUsernames = []
+			if response == []: 
+				pass
+			else:
+				for e in response : 
+					allUsernames.append(e['username']) 
+			return allUsernames

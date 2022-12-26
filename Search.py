@@ -54,6 +54,7 @@ class Search (Mssql):#Mssql
 	Case SERVERPROPERTY('IsClustered') when 1 then 'CLUSTERED' else 'STANDALONE' end  as ServerType,
 	Case SERVERPROPERTY('IsIntegratedSecurityOnly') when 1 then 'WINDOWS_AUTHENT_ONLY' else 'WINDOWS_AUTHENT_AND_SQL_SERVER_AUTH' end  as ServerType, 
 	@@VERSION as VersionNumber"""
+	REQ_GET_ADVANCED_OPTIONS = "EXEC  master.dbo.sp_configure "
 	
 	def __init__ (self, args=None):
 		'''
@@ -166,6 +167,22 @@ class Search (Mssql):#Mssql
 			dbNames.append(aDB['name'])
 		logging.debug("Database found: {0}".format(dbNames))
 		return dbNames
+		
+	def printDatabases(self):
+		'''
+		print databases names
+		Returns True if printed or False if an error
+		'''
+		dbNames = self.getDatabaseNames()
+		if isinstance(dbNames,Exception) == False:
+			print("# Database names:")
+			for aDb in dbNames:
+				print("\t- {0}".format(aDb))
+			return True
+		else:
+			logging.error("Impossible to print dtabase names")
+			return False
+		
 		
 	def getAllTables(self, minusDB=EXCLUDED_DATABASES):
 		'''
@@ -342,6 +359,53 @@ class Search (Mssql):#Mssql
 				print("\t- {0}: {1}".format(aK, data[0][aK]))
 		self.comeBackToLastDBIfRequired()
 		
+	def getAdvancedConfig(self):
+		'''
+		Get Advanced Options
+		'''
+		data = self.executeRequest(request=self.REQ_GET_ADVANCED_OPTIONS, ld=[], noResult=False, autoLD=True)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get SQL Server Instance information: '{0}'".format(data))
+		else:
+			return data
+	
+	def printAdvancedConfig(self):
+		'''
+		print Advanced Options
+		'''
+		data = self.getAdvancedConfig()
+		if isinstance(data,Exception) == False:
+			print("# SQL Server Advanced Options")
+			resultsToTable = []
+			columns = []
+			for aK in data[0]:
+				columns.append(aK)
+			resultsToTable.append(tuple(columns))
+			for aE in data:
+				aLine = []
+				for aK in aE:
+					aLine.append(aE[aK])
+				resultsToTable.append(tuple(aLine))
+			table = Texttable(max_width=getScreenSize()[0])
+			table.set_deco(Texttable.HEADER)
+			table.add_rows(resultsToTable)
+			print(table.draw())
+			
+	def printAllUsers(self):
+		'''
+		print All users
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		allUsernames = self.getUsernamesViaSyslogins()
+		if isinstance(allUsernames,Exception):
+			logging.error("Impossible to print users")
+			return False
+		else:
+			print("# connection accounts (sys.syslogins)s:")
+			for aUser in allUsernames:
+				print("\t- {0}".format(aUser))
+			return True
+		
 def runSearchModule(args):
 	'''
 	Run the Search module
@@ -354,6 +418,9 @@ def runSearchModule(args):
 		args['print'].title("Getting database configuration")
 		search.printInstanceInformation()
 		search.printRemoteDatabaseConfig()
+		search.printDatabases()
+		search.printAllUsers()
+		search.printAdvancedConfig()
 	if args['column-names'] != None:
 		args['print'].title("Searching the pattern '{0}' in column names of all views and tables accessible to the current user (each database accessible by current user shoud be tested manually)".format(args['column-names']))
 		table= search.searchInColumnNames(args['column-names'],noShowEmptyColumns=args['no-show-empty-columns'])

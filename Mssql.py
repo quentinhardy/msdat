@@ -383,3 +383,17 @@ class Mssql ():
 				for e in response : 
 					allUsernames.append(e['username']) 
 			return allUsernames
+			
+	def getSysloginsInformation(self):
+		'''
+		Get information from sys.syslogins
+		Returns list of dict or expection if an error
+		'''
+		QUERY = "SELECT * FROM master..syslogins"
+		logging.info('Get info from syslogins table...')
+		response = self.executeRequest(request=QUERY,ld=[], noResult=False, autoLD=True)
+		if isinstance(response,Exception) :
+			logging.info('Error with the SQL request {0}: {1}'.format(QUERY,str(response)))
+			return response
+		else:
+			return response

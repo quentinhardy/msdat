@@ -34,7 +34,7 @@ class UsernameLikePassword (Mssql):
 		'''
 		Steal logins with SUSER_NAME method
 		Return user list or None if impossible
-		Returns Exception if error
+		Returns Exception or None if error
 		'''
 		logging.info ("Stealing MSSQL users thanks to the SUSER_NAME function...")
 		validUsers, selectData, selectAttr = [], [], []
@@ -42,7 +42,6 @@ class UsernameLikePassword (Mssql):
 			logging.debug ("The current version of MSSQL implements the SUSER_NAME function")
 			for aServerUserId in range (NB_SERVER_USER_ID_MAX):
 				selectData.append("SUSER_NAME({0})".format(aServerUserId+1))
-				#selectAttr.append("'login{0}v'".format(aServerUserId+1))
 			data = self.executeRequest(self.REQ_GET_USERNAME.format(",".join(selectData)))
 			if isinstance(data,Exception): 
 				return data
@@ -74,17 +73,13 @@ class UsernameLikePassword (Mssql):
 		logging.info('Get all usernames from the SUSER_NAME method')
 		usernames = self.getUsernamesViaSuserName()
 		if isinstance(usernames,Exception) or usernames==None:
-			QUERY = "SELECT name FROM master..syslogins"
-			logging.info('Impossible to get usernames with SUSER_NAME method: {1}'.format(QUERY,str(usernames)))
-			logging.info('Get all usernames from the syslogins table...')
-			response = self.executeRequest(request=QUERY,ld=['username'])
-			if isinstance(response,Exception) :
-				logging.info('Error with the SQL request {0}: {1}'.format(QUERY,str(response)))
-				return response
-			else :
-				if response == []: self.allUsernames = []
-				else:
-					for e in response : self.allUsernames.append(e['username']) 
+			logging.info('Impossible to get usernames with SUSER_NAME method: {0}'.format(str(usernames)))
+			allUsernames = self.getUsernamesViaSyslogins()
+			if isinstance(allUsernames,Exception):
+				self.allUsernames = []
+				return allUsernames
+			else:
+				self.allUsernames = allUsernames
 			logging.info("MSSQL usernames stored in the master..syslogins table: {0}".format(self.allUsernames))
 		else:
 			self.allUsernames = usernames

@@ -606,28 +606,35 @@ class Search (Mssql):#Mssql
 			table.set_deco(Texttable.HEADER)
 			table.add_rows(resultsToTable)
 			print(table.draw())
+			
+	def printDatabaseConfig(self):
+		'''
+		Print all database information (instance, databases, users, 
+		disable users, stored procedures, etc)
+		'''
+		self.printInstanceInformation()
+		self.printRemoteDatabaseConfig()
+		self.printDatabases()
+		self.printAllUsers()
+		self.printDisableUsers()
+		self.printSysadminAccounts()
+		self.printSysloginsInfo()
+		self.printAccountsNoExpiration()
+		self.printAccountsPwdPolicyNotSet()
+		self.printAdvancedConfig()
+		self.printStoredProcedures()
 		
 def runSearchModule(args):
 	'''
 	Run the Search module
 	'''
-	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module","schema-dump", "table-dump",'sql-shell','get-config'],checkAccount=True) == False : 
+	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module","schema-dump", "table-dump",'sql-shell','config'],checkAccount=True) == False : 
 		return EXIT_MISS_ARGUMENT
 	search = Search(args)
 	search.connect(printErrorAsDebug=False, stopIfError=True)
-	if args['get-config'] == True:
+	if args['config'] == True:
 		args['print'].title("Getting database configuration")
-		search.printInstanceInformation()
-		search.printRemoteDatabaseConfig()
-		search.printDatabases()
-		search.printAllUsers()
-		search.printDisableUsers()
-		search.printSysadminAccounts()
-		search.printSysloginsInfo()
-		search.printAccountsNoExpiration()
-		search.printAccountsPwdPolicyNotSet()
-		search.printAdvancedConfig()
-		search.printStoredProcedures()
+		search.printDatabaseConfig()
 	if args['column-names'] != None:
 		args['print'].title("Searching the pattern '{0}' in column names of all views and tables accessible to the current user (each database accessible by current user shoud be tested manually)".format(args['column-names']))
 		table= search.searchInColumnNames(args['column-names'],noShowEmptyColumns=args['no-show-empty-columns'])

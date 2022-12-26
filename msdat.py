@@ -314,7 +314,7 @@ def main():
 	#1.13- Parent parser: Search
 	PPsearch = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
 	PPsearch._optionals.title = "search commands"
-	PPsearch.add_argument('--get-config',dest='get-config',default=None,action='store_true',help='get global database configuration')
+	PPsearch.add_argument('--config',dest='config',default=None,action='store_true',help='get database configuration & information (version, databases, users, stored proc, etc)')
 	PPsearch.add_argument('--column-names',dest='column-names',default=None,required=False,metavar='sqlPattern',help='search a pattern in all collumns')
 	PPsearch.add_argument('--pwd-column-names',dest='pwd-column-names',default=None,action='store_true',help='search password patterns in all collumns')
 	PPsearch.add_argument('--no-show-empty-columns',dest='no-show-empty-columns',action='store_true',help="don't show columns if columns are empty")

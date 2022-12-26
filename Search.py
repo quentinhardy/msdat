@@ -401,10 +401,41 @@ class Search (Mssql):#Mssql
 			logging.error("Impossible to print users")
 			return False
 		else:
-			print("# connection accounts (sys.syslogins)s:")
+			print("# connection accounts (sys.syslogins):")
 			for aUser in allUsernames:
 				print("\t- {0}".format(aUser))
 			return True
+			
+	def getDisableUsers(self):
+		'''
+		Get all disable users
+		Returns list otherwise returns exception
+		'''
+		allUserNames = []
+		REQ_GET_DISABLE_ACCOUNTS = """SELECT name FROM master.sys.server_principals WHERE is_disabled = 1"""
+		data = self.executeRequest(request=REQ_GET_DISABLE_ACCOUNTS, ld=[], noResult=False, autoLD=True)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get disable users: '{0}'".format(data))
+		else:
+			for aUser in data:
+				allUserNames.append(aUser['name'])
+			return allUserNames
+			
+	def printDisableUsers(self):
+		'''
+		Print all disable users
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		allUsernames = self.getDisableUsers()
+		if isinstance(allUsernames,Exception):
+			logging.error("Impossible to print disable users")
+			return False
+		else:
+			print("# disable connection accounts (sys.syslogins):")
+			for aUser in allUsernames:
+				print("\t- {0}".format(aUser))
+			return True
+		
 		
 def runSearchModule(args):
 	'''
@@ -420,6 +451,7 @@ def runSearchModule(args):
 		search.printRemoteDatabaseConfig()
 		search.printDatabases()
 		search.printAllUsers()
+		search.printDisableUsers()
 		search.printAdvancedConfig()
 	if args['column-names'] != None:
 		args['print'].title("Searching the pattern '{0}' in column names of all views and tables accessible to the current user (each database accessible by current user shoud be tested manually)".format(args['column-names']))

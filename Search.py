@@ -156,13 +156,13 @@ class Search (Mssql):#Mssql
 	def getDatabaseNames(self):
 		'''
 		Returns database names in a list
-		Returns None if an error
+		Returns Exception if an error
 		'''
 		dbNames = []
 		data = self.executeRequest(self.REQ_GET_DATABASES_NAMES, ld=['name'], noResult=False)
 		if isinstance(data,Exception):
 			logging.error("Impossible to get database names: '{0}'".format(data))
-			return None
+			return data
 		for aDB in data:
 			dbNames.append(aDB['name'])
 		logging.debug("Database found: {0}".format(dbNames))
@@ -187,10 +187,11 @@ class Search (Mssql):#Mssql
 	def getAllTables(self, minusDB=EXCLUDED_DATABASES):
 		'''
 		Return all tables for each database minus databases in minusDB
+		return None if an error
 		'''
 		tables = {}
 		allDatabases = self.getDatabaseNames()
-		if allDatabases == None:
+		if isinstance(allDatabases,Exception):
 			logging.error("Impossible to get tables without database names")
 			return None
 		for aDBToExcl in minusDB:
@@ -316,11 +317,13 @@ class Search (Mssql):#Mssql
 	def getLocationDataFilesLogFiles(self):
 		'''
 		Get Location of Data Files and Log Files in SQL Server
+		Returns exception if an error
 		REQUIREMENT: Has to be executed on MASTER database
 		'''
 		data = self.executeRequest(self.REQ_GET_PATH_LOCAL_FILES, ld=['name','physical_name'], noResult=False)
 		if isinstance(data,Exception):
 			logging.warning("Impossible to get Data Files and Log Files: '{0}'".format(data))
+			return data
 		else:
 			return data
 	
@@ -339,11 +342,13 @@ class Search (Mssql):#Mssql
 	def getInstanceInformation(self):
 		'''
 		Get SQL Server Instance information
+		Returns exception if an error
 		REQUIREMENT: Has to be executed on MASTER database
 		'''
 		data = self.executeRequest(self.REQ_GET_INSTANCE_INFORMATION, noResult=False, autoLD=True,)
 		if isinstance(data,Exception):
 			logging.warning("Impossible to get SQL Server Instance information: '{0}'".format(data))
+			return data
 		else:
 			return data
 			
@@ -362,10 +367,12 @@ class Search (Mssql):#Mssql
 	def getAdvancedConfig(self):
 		'''
 		Get Advanced Options
+		Returns exception if an error
 		'''
 		data = self.executeRequest(request=self.REQ_GET_ADVANCED_OPTIONS, ld=[], noResult=False, autoLD=True)
 		if isinstance(data,Exception):
 			logging.warning("Impossible to get SQL Server Instance information: '{0}'".format(data))
+			return data
 		else:
 			return data
 	
@@ -416,6 +423,7 @@ class Search (Mssql):#Mssql
 		data = self.executeRequest(request=REQ_GET_DISABLE_ACCOUNTS, ld=[], noResult=False, autoLD=True)
 		if isinstance(data,Exception):
 			logging.warning("Impossible to get disable users: '{0}'".format(data))
+			return data
 		else:
 			for aUser in data:
 				allUserNames.append(aUser['name'])
@@ -431,11 +439,173 @@ class Search (Mssql):#Mssql
 			logging.error("Impossible to print disable users")
 			return False
 		else:
-			print("# disable connection accounts (sys.syslogins):")
+			print("# disable connection accounts:")
+			for aUser in allUsernames:
+				print("\t- {0}".format(aUser))
+			return True
+			
+	def getAccountsPwdPolicyNotSet(self):
+		'''
+		Returns accounts as list when password policy does not apply on it
+		Returns list otherwise returns exception
+		'''
+		allUserNames = []
+		REQ_GET_ACC_PWD_POLICY_NOT_SET = """SELECT name FROM master.sys.sql_logins WHERE is_policy_checked = 0"""
+		data = self.executeRequest(request=REQ_GET_ACC_PWD_POLICY_NOT_SET, ld=[], noResult=False, autoLD=True)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get list of users when password policy does not apply on it: '{0}'".format(data))
+			return data
+		else:
+			for aUser in data:
+				allUserNames.append(aUser['name'])
+			return allUserNames
+			
+	def printAccountsPwdPolicyNotSet(self):
+		'''
+		Print all accounts when password policy does not apply on it
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		allUsernames = self.getAccountsPwdPolicyNotSet()
+		if isinstance(allUsernames,Exception):
+			logging.error("Impossible to print accounts when pwd policy does not apply on account")
+			return False
+		else:
+			print("# accounts when password policy does not apply on it:")
+			for aUser in allUsernames:
+				print("\t- {0}".format(aUser))
+			return True
+			
+	def getAccountsNoExpiration(self):
+		'''
+		Returns accounts with no expiration pwd
+		Returns list otherwise returns exception
+		'''
+		allUserNames = []
+		REQ_GET_ACC_NO_EXPIRATION = """SELECT name FROM master.sys.sql_logins WHERE is_expiration_checked = 0"""
+		data = self.executeRequest(request=REQ_GET_ACC_NO_EXPIRATION, ld=[], noResult=False, autoLD=True)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get list of accounts with no expiration pwd: '{0}'".format(data))
+			return data
+		else:
+			for aUser in data:
+				allUserNames.append(aUser['name'])
+			return allUserNames
+		
+	def printAccountsNoExpiration(self):
+		'''
+		Print all accounts with no expiration pwd
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		allUsernames = self.getAccountsNoExpiration()
+		if isinstance(allUsernames,Exception):
+			logging.error("Impossible to print list of accounts with no expiration pwd")
+			return False
+		else:
+			print("# accounts with no expiration password:")
 			for aUser in allUsernames:
 				print("\t- {0}".format(aUser))
 			return True
 		
+	def getSysadminAccounts(self):
+		'''
+		Returns Sysadmin Accounts
+		Returns list otherwise returns exception
+		'''
+		allUserNames = []
+		REQ_GET_SYSADMIN_ACCOUNTS = """SELECT name FROM master.sys.syslogins WHERE sysadmin = 1"""
+		data = self.executeRequest(request=REQ_GET_SYSADMIN_ACCOUNTS, ld=[], noResult=False, autoLD=True)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get list of sysadmin accounts: '{0}'".format(data))
+			return data
+		else:
+			for aUser in data:
+				allUserNames.append(aUser['name'])
+			return allUserNames
+		
+	def printSysadminAccounts(self):
+		'''
+		Print all Sysadmin Accounts
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		allUsernames = self.getSysadminAccounts()
+		if isinstance(allUsernames,Exception):
+			logging.error("Impossible to print sysadmin accounts")
+			return False
+		else:
+			print("# sysadmin accounts:")
+			for aUser in allUsernames:
+				print("\t- {0}".format(aUser))
+			return True
+			
+	def printSysloginsInfo(self):
+		'''
+		Print syslogins information
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		data = self.getSysloginsInformation()
+		if isinstance(data,Exception):
+			logging.error("Impossible to print syslogins information")
+			return False
+		else:
+			print("# Syslogins information")
+			columns = ['name','loginname', 'updatedate','language','denylogin','hasaccess','isntname','isntgroup','sysadmin','securityadmin','serveradmin','setupadmin','processadmin','diskadmin','dbcreator','bulkadmin']
+			resultsToTable = []
+			resultsToTable.append(tuple(columns))
+			for aE in data:
+				aLine = []
+				for aK in columns:
+					aLine.append(aE[aK])
+				resultsToTable.append(tuple(aLine))
+			table = Texttable(max_width=getScreenSize()[0])
+			table.set_deco(Texttable.HEADER)
+			table.add_rows(resultsToTable)
+			print(table.draw())
+			
+	def getStoredProceduresAccessible(self):
+		'''
+		Get all stored procedures
+		Returns list otherwise returns exception
+		'''
+		storedProcs = []
+		REQ_ALL_STORED_PROCEDURES = """SELECT sysobjects.name FROM sysobjects, sysprotects WHERE sysprotects.uid = 0 and xtype in ('x','p') and sysobjects.id = sysprotects.id ORDER BY sysobjects.name"""
+		data = self.executeRequest(request=REQ_ALL_STORED_PROCEDURES, ld=[], noResult=False, autoLD=True)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get stored procedures: '{0}'".format(data))
+			return data
+		else:
+			for aInfo in data:
+				storedProcs.append(aInfo['name'])
+		return storedProcs
+		
+	def printStoredProcedures(self):
+		'''
+		Print Stored Procedures
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		data = self.getStoredProceduresAccessible()
+		if isinstance(data,Exception):
+			logging.error("Impossible to print stored procedures")
+			return False
+		else:
+			lenData = len(data)
+			print("# All Stored procedures:")
+			columns = ['name','name','name','name',]
+			pos = 0
+			resultsToTable = []
+			resultsToTable.append(tuple(columns))
+			for aE in data:
+				aLine = []
+				for i in range(4):
+					if pos>= lenData:
+						aLine.append('')
+					else:
+						aLine.append(data[pos])
+					pos += 1
+				resultsToTable.append(tuple(aLine))
+			table = Texttable(max_width=getScreenSize()[0])
+			table.set_deco(Texttable.HEADER)
+			table.add_rows(resultsToTable)
+			print(table.draw())
 		
 def runSearchModule(args):
 	'''
@@ -452,7 +622,12 @@ def runSearchModule(args):
 		search.printDatabases()
 		search.printAllUsers()
 		search.printDisableUsers()
+		search.printSysadminAccounts()
+		search.printSysloginsInfo()
+		search.printAccountsNoExpiration()
+		search.printAccountsPwdPolicyNotSet()
 		search.printAdvancedConfig()
+		search.printStoredProcedures()
 	if args['column-names'] != None:
 		args['print'].title("Searching the pattern '{0}' in column names of all views and tables accessible to the current user (each database accessible by current user shoud be tested manually)".format(args['column-names']))
 		table= search.searchInColumnNames(args['column-names'],noShowEmptyColumns=args['no-show-empty-columns'])

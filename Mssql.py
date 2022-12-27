@@ -276,8 +276,9 @@ class Mssql ():
 		Otherwise return False
 		If error, return Exception
 		'''
+		REQ_IS_SYSADMIN = "SELECT is_srvrolemember('sysadmin') as issysadmin"
 		logging.info("Checking if the current user is sysadmin")
-		data = self.executeRequest(self.REQ_IS_SYSADMIN,ld=['issysadmin'])
+		data = self.executeRequest(REQ_IS_SYSADMIN,ld=['issysadmin'])
 		if isinstance(data,Exception): 
 			logging.warning("Impossible to known if the user is sysadmin: {0}".format(data))
 			return data

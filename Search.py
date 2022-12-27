@@ -285,18 +285,27 @@ class Search (Mssql):#Mssql
 					table.add_rows(resultsToTable)
 					print(table.draw())
 					
-	def moveToMasterDBIfRequired(self):
+	def moveToThisDBIfRequired(self, dbName):
 		'''
 		Returns True if OK
+		Return False if moving not required
 		Returns Exception if error
 		'''
 		self._lastDBname = self.getDBName()
 		if isinstance(self._lastDBname,Exception):
 			return self._lastDBname
-		if self._lastDBname == "master":
-			logging.info("Currently on master database, nothing to do")
+		if self._lastDBname == dbName:
+			logging.info("Currently on {0} database, nothing to do".format(dbName))
 		else:
-			return self.useThisDB('master')
+			return self.useThisDB(dbName)
+					
+	def moveToMasterDBIfRequired(self):
+		'''
+		Returns True if OK
+		Return False if moving not required
+		Returns Exception if error
+		'''
+		return self.moveToThisDBIfRequired(dbName="master")
 			
 	def comeBackToLastDBIfRequired(self):
 		'''
@@ -624,17 +633,182 @@ class Search (Mssql):#Mssql
 		self.printAdvancedConfig()
 		self.printStoredProcedures()
 		
+	def getLoginPrivs(self):
+		'''
+		Get login privileges information
+		returns exception if an error
+		'''
+		#Thanks you https://raw.githubusercontent.com/NetSPI/PowerUpSQL/master/PowerUpSQL.ps1
+		REQ = """SELECT GRE.name as [GranteeName],
+			GRO.name as [GrantorName],
+			PER.class_desc as [PermissionClass],
+			PER.permission_name as [PermissionName],
+			PER.state_desc as [PermissionState],
+			COALESCE(PRC.name, EP.name, N'') as [ObjectName],
+			COALESCE(PRC.type_desc, EP.type_desc, N'') as [ObjectType]
+			FROM [sys].[server_permissions] as PER
+			INNER JOIN sys.server_principals as GRO
+			ON PER.grantor_principal_id = GRO.principal_id
+			INNER JOIN sys.server_principals as GRE
+			ON PER.grantee_principal_id = GRE.principal_id
+			LEFT JOIN sys.server_principals as PRC
+			ON PER.class = 101 AND PER.major_id = PRC.principal_id
+			LEFT JOIN sys.endpoints AS EP
+			ON PER.class = 105 AND PER.major_id = EP.endpoint_id
+		ORDER BY GranteeName,PermissionName;
+		"""
+		data = self.executeRequest(request=REQ, ld=[], noResult=False, autoLD=True)
+		if isinstance(data,Exception):
+			logging.warning("Impossible to get privileges: '{0}'".format(data))
+		return data
+		
+	def printLoginPrivs(self):
+		'''
+		Print login Privileges
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		data = self.getLoginPrivs()
+		if isinstance(data,Exception):
+			logging.error("Impossible to print privileges")
+			return False
+		else:
+			print("# Privileges of each user")
+			resultsToTable = []
+			columns = []
+			for aK in data[0]:
+				columns.append(aK)
+			resultsToTable.append(tuple(columns))
+			for aE in data:
+				aLine = []
+				for aK in aE:
+					aLine.append(aE[aK])
+				resultsToTable.append(tuple(aLine))
+			table = Texttable(max_width=getScreenSize()[0])
+			table.set_deco(Texttable.HEADER)
+			table.add_rows(resultsToTable)
+			print(table.draw())
+			
+	def getDatabasePrivs(self):
+		'''
+		Get database privileges information for each database
+		return a dictionary
+		returns exception if an error
+		'''
+		results = {}
+		#Thanks you https://raw.githubusercontent.com/NetSPI/PowerUpSQL/master/PowerUpSQL.ps1
+		allDatabases = self.getDatabaseNames()
+		if isinstance(allDatabases,Exception):
+			logging.error("Impossible to get database privs without database names")
+			return allDatabases
+		else:
+			for aDB in allDatabases:
+				logging.info("Getting database privileges on database {0}...".format(aDB))
+				status = self.moveToThisDBIfRequired(aDB)
+				if isinstance(status,Exception):
+					logging.error("Impossible to get database privs without moving to {0} database".format(aDB))
+				else:
+					#Thanks you https://raw.githubusercontent.com/NetSPI/PowerUpSQL/master/PowerUpSQL.ps1
+					REQ = """
+							SELECT rp.name as [PrincipalName],
+							rp.type_desc as [PrincipalType],
+							pm.class_desc as [PermissionType],
+							pm.permission_name as [PermissionName],
+							pm.state_desc as [StateDescription],
+							ObjectType = CASE
+							WHEN obj.type_desc IS NULL
+							OR obj.type_desc = 'SYSTEM_TABLE' THEN
+							pm.class_desc
+							ELSE
+							obj.type_desc
+							END,
+							[ObjectName] = Isnull(ss.name, Object_name(pm.major_id))
+							FROM   {0}.sys.database_principals rp
+							INNER JOIN {0}.sys.database_permissions pm
+							ON pm.grantee_principal_id = rp.principal_id
+							LEFT JOIN {0}.sys.schemas ss
+							ON pm.major_id = ss.schema_id
+							LEFT JOIN {0}.sys.objects obj
+							ON pm.[major_id] = obj.[object_id] WHERE 1=1
+					""".format(aDB)
+					data = self.executeRequest(request=REQ, ld=[], noResult=False, autoLD=True)
+					status = self.comeBackToLastDBIfRequired()
+					if isinstance(data,Exception):
+						logging.warning("Impossible to get database privileges for database {0}: '{1}'".format(aDB, data))
+					results[aDB]=data
+			return results
+		
+	def printDatabasePrivs(self):
+		'''
+		Print database Privileges for each database
+		Returns True if ok othwerwise returns False (an error)
+		'''
+		data = self.getDatabasePrivs()
+		if isinstance(data,Exception):
+			logging.error("Impossible to print database privileges")
+			return False
+		else:
+			for aDBname in data:
+				print("# Database privileges for database {0}".format(aDBname))
+				if isinstance(data[aDBname],Exception):
+					logging.error("Impossible to get database privileges for {0} database".format(aDBname))
+				else:
+					resultsToTable = []
+					columns = []
+					for aK in data[aDBname][0]:
+						columns.append(aK)
+					resultsToTable.append(tuple(columns))
+					for aE in data[aDBname]:
+						aLine = []
+						for aK in aE:
+							aLine.append(aE[aK])
+						resultsToTable.append(tuple(aLine))
+					table = Texttable(max_width=getScreenSize()[0])
+					table.set_deco(Texttable.HEADER)
+					table.add_rows(resultsToTable)
+					print(table.draw())
+					
+	def printCurrentUserRoles(self):
+		'''
+		Print current user roles
+		'''
+		print("# Current user is a member of the specified server role:")
+		print("\t sysadmin: {0}".format(self.isCurrentUserSysadmin()))
+		print("\t serveradmin: {0}".format(self.isCurrentUserServeradmin()))
+		print("\t dbcreator: {0}".format(self.isCurrentUserDbcreator()))
+		print("\t setupadmin: {0}".format(self.isCurrentUserSetupadmin()))
+		print("\t bulkadmin: {0}".format(self.isCurrentUserBulkadmin()))
+		print("\t securityadmin: {0}".format(self.isCurrentUserSecurityadmin()))
+		print("\t diskadmin: {0}".format(self.isCurrentUserDiskadmin()))
+		print("\t public: {0}".format(self.isCurrentUserPublic()))
+		print("\t processadmin: {0}".format(self.isCurrentUserProcessadmin()))
+					
+	def printPrivilegesCurrentUser(self):
+		'''
+		Print privileges of current user
+		Roles and login & database privileges
+		'''
+		self.printCurrentUserRoles()
+		self.printLoginPrivs()
+		self.printDatabasePrivs()
+		
+				
 def runSearchModule(args):
 	'''
 	Run the Search module
 	'''
-	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module","schema-dump", "table-dump",'sql-shell','config'],checkAccount=True) == False : 
+	if checkOptionsGivenByTheUser(args,["column-names","pwd-column-names","no-show-empty-columns","test-module","schema-dump", "table-dump",'sql-shell','config', 'privs', 'privs-full'],checkAccount=True) == False : 
 		return EXIT_MISS_ARGUMENT
 	search = Search(args)
 	search.connect(printErrorAsDebug=False, stopIfError=True)
 	if args['config'] == True:
 		args['print'].title("Getting database configuration")
 		search.printDatabaseConfig()
+	if args['privs'] == True:
+		args['print'].title("Getting privileges of current user")
+		search.printCurrentUserRoles()
+	if args['privs-full'] == True:
+		args['print'].title("Getting privileges of current user")
+		search.printPrivilegesCurrentUser()
 	if args['column-names'] != None:
 		args['print'].title("Searching the pattern '{0}' in column names of all views and tables accessible to the current user (each database accessible by current user shoud be tested manually)".format(args['column-names']))
 		table= search.searchInColumnNames(args['column-names'],noShowEmptyColumns=args['no-show-empty-columns'])

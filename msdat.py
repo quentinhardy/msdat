@@ -315,6 +315,8 @@ def main():
 	PPsearch = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
 	PPsearch._optionals.title = "search commands"
 	PPsearch.add_argument('--config',dest='config',default=None,action='store_true',help='get database configuration & information (version, databases, users, stored proc, etc)')
+	PPsearch.add_argument('--privs',dest='privs',default=None,action='store_true',help='get current user roles')
+	PPsearch.add_argument('--privs-full',dest='privs-full',default=None,action='store_true',help='get current user privileges (roles, login & database privs)')
 	PPsearch.add_argument('--column-names',dest='column-names',default=None,required=False,metavar='sqlPattern',help='search a pattern in all collumns')
 	PPsearch.add_argument('--pwd-column-names',dest='pwd-column-names',default=None,action='store_true',help='search password patterns in all collumns')
 	PPsearch.add_argument('--no-show-empty-columns',dest='no-show-empty-columns',action='store_true',help="don't show columns if columns are empty")
@@ -322,7 +324,7 @@ def main():
 	PPsearch.add_argument('--table-dump',dest='table-dump',default=None,required=False,metavar='path',help="extract all tables and save in file (except for default DBs)")
 	PPsearch.add_argument('--sql-shell', dest='sql-shell', action='store_true',help="start a minimal interactive SQL shell")
 	PPsearch.add_argument('--test-module',dest='test-module',action='store_true',help='test the module before use it')
-    #1.14- Parent parser: All
+	#1.14- Parent parser: All
 	PPall = argparse.ArgumentParser(add_help=False,formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=MAX_HELP_POSITION))
 	PPall._optionals.title = "all module commands"
 	PPall.add_argument('-l', dest='hostlist', required=False, help='filename which contains hosts (one ip on each line: "ip:port" or "ip" only)')

@@ -268,7 +268,35 @@ class Mssql ():
 			return data
 		else:
 			logging.debug("We are in the database {0}".format(name)) 
-			return True 
+			return True
+			
+	def __isCurrentUser__(self, roleName):
+		'''
+		Returns True if current user has roleName
+		Otherwise return False
+		If error, return Exception
+		'''
+		REQ = "SELECT is_srvrolemember('{0}') as role".format(roleName)
+		logging.info("Checking if the current user is {0}".format(roleName))
+		data = self.executeRequest(REQ,ld=['role'])
+		if isinstance(data,Exception): 
+			logging.warning("Impossible to known if the user has {0} role: {1}".format(roleName, data))
+			return data
+		else:
+			for e in data: 
+				if e['role']==0:
+					logging.debug("The current user is not {0}".format(roleName))
+					return False
+				elif e['role']==1:
+					logging.debug("The current user is {0}".format(roleName))
+					return True
+				else:
+					msg = "Impossible to known if the user has {0} because the result is not 1 or 0. The result is '{1}'".format(roleName, e['issysadmin'])
+					logging.warning(msg)
+					return ErrorClass(msg)
+			msg = "Impossible to known if the user has {0} because the result is empty"
+			logging.warning(msg)
+			return ErrorClass(msg)
 
 	def isCurrentUserSysadmin(self):
 		'''
@@ -276,28 +304,72 @@ class Mssql ():
 		Otherwise return False
 		If error, return Exception
 		'''
-		REQ_IS_SYSADMIN = "SELECT is_srvrolemember('sysadmin') as issysadmin"
-		logging.info("Checking if the current user is sysadmin")
-		data = self.executeRequest(REQ_IS_SYSADMIN,ld=['issysadmin'])
-		if isinstance(data,Exception): 
-			logging.warning("Impossible to known if the user is sysadmin: {0}".format(data))
-			return data
-		else:
-			for e in data: 
-				if e['issysadmin']==0:
-					logging.debug("The current user is not SYSADMIN")
-					return False
-				elif e['issysadmin']==1:
-					logging.debug("The current user is SYSADMIN")
-					return True
-				else:
-					msg = "Impossible to known if the user is sysadmin because the result is not 1 or 0. The result is '{0}'".format(e['issysadmin'])
-					logging.warning(msg)
-					return ErrorClass(msg)
-			msg = "Impossible to known if the user is sysadmin because the result is empty"
-			logging.warning(msg)
-			return ErrorClass(msg)
-			
+		return self.__isCurrentUser__('sysadmin')
+		
+	def isCurrentUserServeradmin(self):
+		'''
+		Returns True if current user is serveradmin
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('serveradmin')
+		
+	def isCurrentUserDbcreator(self):
+		'''
+		Returns True if current user is dbcreator
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('dbcreator')
+		
+	def isCurrentUserSetupadmin(self):
+		'''
+		Returns True if current user is setupadmin
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('setupadmin')
+		
+	def isCurrentUserBulkadmin(self):
+		'''
+		Returns True if current user is bulkadmin
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('bulkadmin')
+	
+	def isCurrentUserSecurityadmin(self):
+		'''
+		Returns True if current user is securityadmin
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('securityadmin')
+	
+	def isCurrentUserDiskadmin(self):
+		'''
+		Returns True if current user is diskadmin
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('diskadmin')
+
+	def isCurrentUserPublic(self):
+		'''
+		Returns True if current user is public
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('public')
+		
+	def isCurrentUserProcessadmin(self):
+		'''
+		Returns True if current user is processadmin
+		Otherwise return False
+		If error, return Exception
+		'''
+		return self.__isCurrentUser__('processadmin')
+
 	def getCurrentUser(self):
 		'''
 		Returns the current user name

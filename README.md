@@ -20,6 +20,9 @@ Tested on Microsof SQL database 2005, 2008, 2012, 2014, 2016 and __2019__.
 
 Changelog
 ====
+* Version __2.4__ (2022/12/28) :
+  * 2 new options in _search_ module:  _--privs_ and _--privs-full_ for getting current user roles and privileges (e.g. login and database privileges)
+  * 1 new option in _search_ module: _--config_ for getting database configurations & information (version, databases, users, disable users, stored procecdures, etc)
 * Version __2.3__ (2022/12/18) :
   * compataible with Microsoft SQL Server 2019
   * new option --schema-dump in search module for extract the schema and save in file (except for default DBs)
@@ -122,7 +125,7 @@ How to begin
 ====
 
 ```bash
-python3 msdat.py -h
+python3 msdat.py -h                                                                                                                                                                                                                                                    2 ⨯
 usage: msdat.py [-h] [--version]
                 {all,mssqlinfo,passwordguesser,passwordstealer,xpcmdshell,jobs,smbauthcapture,oleautomation,bulkopen,xpdirectory,trustworthype,userlikepwd,search,cleaner}
                 ...
@@ -140,7 +143,7 @@ usage: msdat.py [-h] [--version]
                         
 -------------------------------------------------------
 
-By Quentin Hardy (quentin.hardy@protonmail.com or quentin.hardy@bt.com)
+By Quentin Hardy (quentin.hardy@protonmail.com)
 
 positional arguments:
   {all,mssqlinfo,passwordguesser,passwordstealer,xpcmdshell,jobs,smbauthcapture,oleautomation,bulkopen,xpdirectory,trustworthype,userlikepwd,search,cleaner}

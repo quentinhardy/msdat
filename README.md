@@ -90,7 +90,10 @@ Thanks to MSDAT (**M**icro**s**oft SQL **D**atabase **A**ttacking **T**ool), you
   * *xp_availablemedia*
 * __create folder__ with:
   * *xp_create_subdir*
-* search sensitive data in tables (e.g. credentials)  
+* search sensitive data in tables (e.g. credentials)
+* get database configuration (databases, users, stored procedures, etc)
+* extract schema and all tables information
+* exeucte basic SQL commands in a pseudo SQL shell
  
 Installation
 ====

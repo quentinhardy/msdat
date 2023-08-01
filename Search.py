@@ -830,7 +830,7 @@ def runSearchModule(args):
 		args['print'].title("Extracting schema and saving in {0}".format(outFile))
 		args['print'].goodNews("Keep calm and wait... Can take minutes!".format(outFile))
 		search.saveSchema(pathToOutFile=args['schema-dump'])
-		args['print'].goodNews("Results saved in {0}:".format(args['table-dump']))
+		args['print'].goodNews("Results saved in {0}:".format(args['schema-dump']))
 	if args['table-dump'] != None:
 		outFile = args['table-dump']
 		args['print'].title("Extracting table and saving in {0}".format(outFile))
